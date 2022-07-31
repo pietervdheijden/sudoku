@@ -10,17 +10,13 @@ import (
 )
 
 func main() {
-
-	// if []int{1,2} == []int{1,2} {
-	// 	fmt.Println("true")
-	// } else {
-	// 	fmt.Println("false")
-	// }
-
 	fmt.Println("Let's solve this Sudoku!")
 
+	sudoku := Sudoku{}
+    
 	fmt.Println("First, read the Sudoku from file")
-	sudoku := read("sudoku2.txt")
+	// sudoku.read("sudoku1.txt")
+	sudoku.read("sudoku2.txt")
 	fmt.Println(sudoku)
 
 	i := 0
@@ -28,38 +24,18 @@ func main() {
 		i++
 		fmt.Printf("######### Iteration %d ##########\n", i)
 		sudoku.print()
-
 		if !sudoku.valid() {
 			panic("Sudoku is not valid!")
 		}
-
-		options := sudoku.calculateOptions()
-		fmt.Println("Options:")
-		for _, option := range options {
-			fmt.Println(option)
-		}
-
-		// move to func? e.g. solve()?
-		moved := false
-		for row := 0; row < len(sudoku); row++ {
-			for col := 0; col < len(sudoku[row]); col++ {
-				if len(options[row][col]) == 1 {
-					sudoku[row][col] = options[row][col][0]
-					moved = true
-				}
-			}
-		}
-
-		if !moved {
-			sudoku.print()
-			panic("Couldn't find an option to move. Sudoku is too hard for the algorithm!")
-		}
-
-
+		sudoku.updateOptions()
+		sudoku.updateNumbers()
+		// if !updated {
+		// 	sudoku.print()
+		// 	panic("Couldn't find an option to move. Sudoku is too hard for the algorithm!")
+		// }
 		if sudoku.done() {
 			break
 		}
-		// break;
 	}
 
 	fmt.Println("######################")
@@ -67,36 +43,55 @@ func main() {
 	sudoku.print()
 }
 
-type Sudoku [9][9]int
+type Cell struct {
+	id int
+	x int
+	y int
+	square int
+	number int
+	options []int
+}
+type Sudoku [81]Cell
+type Cell9Collection [9]*Cell
 
-func read(fileLocation string) Sudoku {
+// TODO: consider reverse read (so 0,0 is left bottom)
+func (sudoku *Sudoku) read(fileLocation string) {
 	file, err := os.Open(fileLocation)
     if err != nil {
         log.Fatal(err)
     }
     defer file.Close()
 
-	sudoku := Sudoku{}
-    scanner := bufio.NewScanner(file)
-	rowIdx := 0
+	scanner := bufio.NewScanner(file)
+	id := 0
+	y := 0
     for scanner.Scan() {
-		row := [9]int{}
-		for i, v := range strings.Split(scanner.Text(), "") {
-			row[i], err = strconv.Atoi(v)
+		for x, v := range strings.Split(scanner.Text(), "") {
+			number, err := strconv.Atoi(v)
 			if err != nil {
 				// ... handle error
 				panic(err)
 			}
+			options := []int{1,2,3,4,5,6,7,8,9}
+			if number != 0 {
+				options = []int{}
+			}
+			square := (y/3)*3 + x/3 // (y/3)*3 != y, e.g. (4/3)*3=3
+			sudoku[id] = Cell{
+				id: id,
+				x: x,
+				y: y,
+				square: square,
+				number: number,
+				options: options,	
+			}
+			id++
 		}
-		sudoku[rowIdx] = row
-		rowIdx++
+		y++
     }
-
     if err := scanner.Err(); err != nil {
         log.Fatal(err)
     }
-
-	return sudoku
 }
 
 
@@ -104,202 +99,191 @@ func read(fileLocation string) Sudoku {
 func (sudoku Sudoku) print() {
 	fmt.Println("Sudoku:")
 
-	for row := 0; row < len(sudoku); row++ {
-		// fmt.Printf("\t")
-		for column := 0; column < len(sudoku[row]); column++ {
-			fmt.Printf("%d", sudoku[row][column])
+	for y := 0; y < 9; y++ {
+		for _, cell := range sudoku.getCellsByY(y) {
+			fmt.Printf("%d", (*cell).number)
 		}
 		fmt.Printf("\n")
 	}
 }
 
+func (sudoku *Sudoku) getCellsByX(x int) Cell9Collection {
+	cells := Cell9Collection{}
+	i := 0
+	for j := 0; j < len(sudoku); j++ {
+		if (sudoku[j].x == x) {
+			cells[i] = &sudoku[j]
+			i++
+		}
+	}
+	return cells
+}
+
+func (sudoku *Sudoku) getCellsByY(y int) Cell9Collection{
+	cells := Cell9Collection{}
+	i := 0
+	for j := 0; j < len(sudoku); j++ {
+		if (sudoku[j].y == y) {
+			cells[i] = &sudoku[j]
+			i++
+		}
+	}
+	return cells
+}
+
+func (sudoku *Sudoku) getCellsBySquare(square int) Cell9Collection{
+	cells := Cell9Collection{}
+	i := 0
+	for j := 0; j < len(sudoku); j++ {
+		if (sudoku[j].square == square) {
+			cells[i] = &sudoku[j]
+			i++
+		}
+	}
+	return cells
+}
+
+func (sudoku *Sudoku) getCell(x, y int) *Cell {
+	for i := 0; i < len(sudoku); i++ {
+		cell := sudoku[i]
+		if cell.x == x && cell.y == y {
+			return &cell
+		}
+	}
+	panic("ERR! Could not find cell!")
+}
+
 func (sudoku Sudoku) valid() bool {
-	// Check rows
-	for row := 0; row < len(sudoku); row++ {
-		numbers := []int{}
-		for col := 0; col < len(sudoku[row]); col++ {
-			number := sudoku[row][col]
-			if contains(numbers, number) {
-				return false
-			}
-			if number != 0 {
-				numbers = append(numbers, sudoku[row][col])
-			}
+	for i := 0; i < 9; i++ {
+		cellsY := sudoku.getCellsByY(i)
+		cellsX := sudoku.getCellsByX(i)
+		cellsSquare := sudoku.getCellsBySquare(i)
+
+		if !cellsY.valid() || !cellsX.valid() || !cellsSquare.valid() {
+			return false
 		}
 	}
-
-	// Check columns
-	for col := 0; col < len(sudoku); col++ {
-		numbers := []int{}
-		for row := 0; row < len(sudoku[col]); row++ {
-			number := sudoku[row][col]
-			if contains(numbers, number) {
-				return false
-			}
-			if number != 0 {
-				numbers = append(numbers, sudoku[row][col])
-			}
-		}
-	}
-
-	// Check squares
-	squares := sudoku.getSquares()
-	for _, row := range squares {
-		for _, col := range row {
-			numbers := []int{}
-			for _, number := range col {
-				if contains(numbers, number) {
-					return false
-				}
-				if number != 0 {
-					numbers = append(numbers, number)
-				}
-			}
-		}
-	}
-
 	return true
 }
 
-func (sudoku Sudoku) getSquares() [3][3][]int {
-	squares := [3][3][]int{}
-	for row := 0; row < len(sudoku); row++ {
-		for col := 0; col < len(sudoku[row]); col++ {
-			squares[row / 3][col / 3] = append(squares[row / 3][col / 3], sudoku[row][col])
+func (cells Cell9Collection) valid() bool{
+	numbers := []int{}
+	for _, cell := range cells {
+		number := (*cell).number
+		if contains(numbers, number) {
+			return false
+		}
+		if number != 0 {
+			numbers = append(numbers, number)
 		}
 	}
-	return squares
-}
-
-func (sudoku Sudoku) getSquare(row, col int) []int {
-	return sudoku.getSquares()[row / 3][col / 3]
+	return true
 }
 
 func (sudoku Sudoku) done() bool {
-	for row := 0; row < len(sudoku); row++ {
-		for column := 0; column < len(sudoku[row]); column++ {
-			if sudoku[row][column] == 0 {
-				fmt.Printf("Not done: sudoku[%d][%d] == 0\n", row, column)
-				return false
-			}
+	for i := 0; i < len(sudoku); i++ {
+		if sudoku[i].number == 0 {
+			fmt.Printf("Not done: sudoku[%d][%d] == 0\n", sudoku[i].y, sudoku[i].x)
+			return false
 		}
 	}
 	return true
 }
 
-func (sudoku Sudoku) calculateOptions() [9][9][]int {
-	allOptions := [9][9][]int{}
-	for row := 0; row < len(sudoku); row++ {
-		for column := 0; column < len(sudoku[row]); column++ {
-			if sudoku[row][column] != 0 {
-				continue
-			}
+func (sudoku *Sudoku) updateOptions() {
+	for i := 0; i < 9; i++ {
+		cellsY := sudoku.getCellsByY(i)
+		cellsX := sudoku.getCellsByX(i)
+		cellsSquare := sudoku.getCellsBySquare(i)
 
-			// Init options
-			// Start with all options, and then eliminate.
-			options := []int{1,2,3,4,5,6,7,8,9}
-
-			// Check row
-			for otherColumn := 0; otherColumn < len(sudoku[row]); otherColumn++ {
-				remove(&options, sudoku[row][otherColumn])
-			}
-
-			// Check column
-			for otherRow := 0; otherRow < len(sudoku); otherRow++ {
-				remove(&options, sudoku[otherRow][column])
-			}
-
-			// Check square
-			square := sudoku.getSquare(row, column)
-			for _, number := range square {
-				remove(&options, number)
-			}
-
-			allOptions[row][column] = options
-		}
+		cellsY.updateOptions()
+		cellsX.updateOptions()
+		cellsSquare.updateOptions()
 	}
-
-	// Check duplicate tuples - rows
-	for row := 0; row < len(allOptions); row++ {
-		// Group indexes by option
-		count := map[string][]int{}
-		for col := 0; col < len(allOptions[row]); col++ {
-			if len(allOptions[row][col]) == 0 {
-				continue
-			}
-			key := sliceToString(allOptions[row][col], ",")
-			count[key] = append(count[key], col)
-		}
-		for option, indexes := range count {
-			slice := stringToSlice(option, ",")
-			if len(slice) != len(indexes) || len(slice) == 1 {
-				continue
-			}
-			for _, number := range slice {
-				for col := 0; col < len(allOptions[row]); col++ {
-					if contains(indexes, col) {
-						continue
-					}
-					remove(&allOptions[row][col], number)
-				}
-			}
-		}
-	}
-
-	// search duplicate options - cols
-	for col := 0; col < len(allOptions); col++ {
-		// Group indexes by option
-		count := map[string][]int{}
-		for row := 0; row < len(allOptions[col]); row++ {
-			if len(allOptions[row][col]) == 0 {
-				continue
-			}
-			key := sliceToString(allOptions[row][col], ",")
-			count[key] = append(count[key], row)
-		}
-		for option, indexes := range count {
-			slice := stringToSlice(option, ",")
-			if len(slice) != len(indexes) || len(slice) == 1 {
-				continue
-			}
-			for _, number := range slice {
-				for row := 0; row < len(allOptions[col]); row++ {
-					if contains(indexes, row) {
-						continue
-					}
-					remove(&allOptions[row][col], number)
-				}
-			}
-		}
-	}
-
-	// search duplicate options - squares
-	// TODO
-	// for _, square := range sudoku.getSquares() {
-	// 	options := []int{}
-	// 	for row := 0; row < len(square); row++ {
-	// 		for col := 0; col < len(square[row]); col++ {
-	// 			options = append(options, square[row][col])
-	// 		}
-	// 	}
-
-	// 	count := map[string][]int{}
-	// 	for i := 0; i < len(options[col]); row++ {
-	// 		if len(allOptions[row][col]) == 0 {
-	// 			continue
-	// 		}
-	// 		key := sliceToString(allOptions[row][col], ",")
-	// 		count[key] = append(count[key], row)
-	// 	}
-	// }
-
-
-	return allOptions
 }
 
-// func (slice []int) toString2() string {
-// 	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(slice)), delim), "[]")
-// }
+func (cells Cell9Collection) updateOptions() {
+	// remove filled in numbers from other cells options
+	for c1 := 0; c1 < len(cells); c1++ {
+		for c2 := 0; c2 < len(cells); c2++ {
+			numberC2 := (*cells[c2]).number 
+			if c1 == c2 || numberC2 == 0 {
+				continue
+			}
+			cells[c1].removeOption(numberC2)
+		}
+	}
+
+	// remove duplicate options
+	count := map[string][]int{}
+	for i := 0; i < 9; i++ {
+		options := (*cells[i]).options
+		if len(options) == 0 {
+			continue
+		}
+		key := sliceToString(options, ",")
+		count[key] = append(count[key], i)
+	}
+	for key, indexes := range count {
+		options := stringToSlice(key, ",")
+		if len(options) != len(indexes) || len(options) == 1 {
+			continue
+		}
+		for _, number := range options {
+			for c2 := 0; c2 < 9; c2++ {
+				if contains(indexes, c2) {
+					continue
+				}
+				cells[c2].removeOption(number)
+			}
+		}
+	}
+
+	// check missing options
+	missingNumbers := []int{}
+	for number := 1; number <= 9; number++ {
+		found := false
+		for i := 0; i < 9; i++ {
+			if (*cells[i]).number == number {
+				found = true
+				break
+			}
+		}
+		if !found {
+			missingNumbers = append(missingNumbers, number)
+		}
+	}
+	for i := 0; i < len(missingNumbers); i++ {
+		missingNumber := missingNumbers[i]
+		optionsCount := 0
+		for j := 0; j < 9; j++ {
+			if contains((*cells[j]).options, missingNumber) {
+				optionsCount++
+			}
+		}
+		if (optionsCount == 1) {
+			for k := 0; k < 9; k++ {
+				if contains((*cells[k]).options, missingNumber) {
+					(*cells[k]).number = missingNumber
+					(*cells[k]).options = []int{}
+				}
+			}
+		}
+	}
+}
+
+// TODO: Merge with updateOptions?
+func (sudoku *Sudoku) updateNumbers() bool {
+	updated := false
+	for i := 0; i < len(sudoku); i++ {
+		if len(sudoku[i].options) == 1 {
+			sudoku[i].number = sudoku[i].options[0]
+			sudoku[i].options = []int{}
+			updated = true
+		}
+	}
+	return updated
+}
 
 func sliceToString(slice []int, delim string) string {
 	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(slice)), delim), "[]")
@@ -328,16 +312,11 @@ func contains(s []int, e int) bool {
     return false
 }
 
-func remove(slice *[]int, value int) {
-	for i, v := range *slice {
-		if v == value {
-			*slice = append((*slice)[:i], (*slice)[i+1:]...)
+func (cell *Cell) removeOption(value int) {
+	for i, option := range (*cell).options {
+		if option == value {
+			(*cell).options = append((*cell).options[:i], (*cell).options[i+1:]...)
 			return
 		}
 	}
 }
-
-// source: https://stackoverflow.com/a/37335777/3737152
-// func remove(slice []int, s int) []int {
-//     return append(slice[:s], slice[s+1:]...)
-// }
