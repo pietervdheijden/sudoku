@@ -17,6 +17,7 @@ func main() {
 	fmt.Println("First, read the Sudoku from file")
 	// sudoku.read("sudoku1.txt")
 	sudoku.read("sudoku2.txt")
+	// sudoku.read("sudoku3.txt")
 	fmt.Println(sudoku)
 
 	i := 0
@@ -28,11 +29,11 @@ func main() {
 			panic("Sudoku is not valid!")
 		}
 		sudoku.updateOptions()
-		sudoku.updateNumbers()
-		// if !updated {
-		// 	sudoku.print()
-		// 	panic("Couldn't find an option to move. Sudoku is too hard for the algorithm!")
-		// }
+		updated := sudoku.updateNumbers()
+		if !updated {
+			sudoku.print()
+			panic("Couldn't find an option to move. Sudoku is too hard for the algorithm!")
+		}
 		if sudoku.done() {
 			break
 		}
@@ -191,6 +192,14 @@ func (sudoku Sudoku) done() bool {
 }
 
 func (sudoku *Sudoku) updateOptions() {
+	// When number != 0, set options to empty array
+	for i := 0; i < len(sudoku); i++ {
+		if sudoku[i].number != 0 {
+			sudoku[i].options = []int{}
+		}
+	}
+
+	// Update options for each row, column and square
 	for i := 0; i < 9; i++ {
 		cellsY := sudoku.getCellsByY(i)
 		cellsX := sudoku.getCellsByX(i)
@@ -203,7 +212,7 @@ func (sudoku *Sudoku) updateOptions() {
 }
 
 func (cells Cell9Collection) updateOptions() {
-	// remove filled in numbers from other cells options
+	// When number != 0, remove the option from the other cells 
 	for c1 := 0; c1 < len(cells); c1++ {
 		for c2 := 0; c2 < len(cells); c2++ {
 			numberC2 := (*cells[c2]).number 
@@ -214,92 +223,97 @@ func (cells Cell9Collection) updateOptions() {
 		}
 	}
 
-	// remove duplicate options
-	count := map[string][]int{}
-	for i := 0; i < 9; i++ {
-		options := (*cells[i]).options
+	// When x cells have the same x options, remove the options from the other cells
+	// For example, when cell 1 and 2 both have options 4 and 6, none of the other cells are allowed to have option 4 or 6
+	for c1 := 0; c1 < 9; c1++ {
+		options := (*cells[c1]).options
 		if len(options) == 0 {
 			continue
 		}
-		key := sliceToString(options, ",")
-		count[key] = append(count[key], i)
-	}
-	for key, indexes := range count {
-		options := stringToSlice(key, ",")
-		if len(options) != len(indexes) || len(options) == 1 {
+		count := 0
+		for c2 := 0; c2 < 9; c2++ {
+			if equals(options, (*cells[c2]).options) {
+				count++
+			}
+		}
+		if len(options) != count {
 			continue
 		}
-		for _, number := range options {
-			for c2 := 0; c2 < 9; c2++ {
-				if contains(indexes, c2) {
-					continue
-				}
-				cells[c2].removeOption(number)
+		for c3 := 0; c3 < 9; c3++ {
+			if equals(options, (*cells[c3]).options) {
+				continue
 			}
-		}
-	}
-
-	// check missing options
-	missingNumbers := []int{}
-	for number := 1; number <= 9; number++ {
-		found := false
-		for i := 0; i < 9; i++ {
-			if (*cells[i]).number == number {
-				found = true
-				break
-			}
-		}
-		if !found {
-			missingNumbers = append(missingNumbers, number)
-		}
-	}
-	for i := 0; i < len(missingNumbers); i++ {
-		missingNumber := missingNumbers[i]
-		optionsCount := 0
-		for j := 0; j < 9; j++ {
-			if contains((*cells[j]).options, missingNumber) {
-				optionsCount++
-			}
-		}
-		if (optionsCount == 1) {
-			for k := 0; k < 9; k++ {
-				if contains((*cells[k]).options, missingNumber) {
-					(*cells[k]).number = missingNumber
-					(*cells[k]).options = []int{}
-				}
+			for _, number := range options {
+				cells[c3].removeOption(number)
 			}
 		}
 	}
 }
 
-// TODO: Merge with updateOptions?
 func (sudoku *Sudoku) updateNumbers() bool {
 	updated := false
+
+	// Set number when the cell only has 1 option
 	for i := 0; i < len(sudoku); i++ {
 		if len(sudoku[i].options) == 1 {
 			sudoku[i].number = sudoku[i].options[0]
-			sudoku[i].options = []int{}
+			updated = true
+		}
+	}
+
+	// Update options for each row, column and square
+	for i := 0; i < 9; i++ {
+		cellsY := sudoku.getCellsByY(i)
+		cellsX := sudoku.getCellsByX(i)
+		cellsSquare := sudoku.getCellsBySquare(i)
+
+		updatedY := cellsY.updateNumbers()
+		updatedX := cellsX.updateNumbers()
+		updatedSquare := cellsSquare.updateNumbers()
+		if updatedY || updatedX || updatedSquare {
+			updated = true
+		}
+	}
+
+	return updated
+}
+
+func (cells Cell9Collection) updateNumbers() bool {
+	updated := false
+
+	// Set number when there's only a single cell which options contains the number
+	for number := 1; number <= 9; number++ {
+		numberFound := false
+		potentialCellCount := 0
+		lastCellIndex := -1
+		for i := 0; i < 9; i++ {
+			if (*cells[i]).number == number {
+				numberFound = true
+				break
+			}
+			if contains((*cells[i]).options, number) {
+				potentialCellCount++
+				lastCellIndex = i
+			}
+		}
+		if !numberFound && potentialCellCount == 1 {
+			(*cells[lastCellIndex]).number = number
 			updated = true
 		}
 	}
 	return updated
 }
 
-func sliceToString(slice []int, delim string) string {
-	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(slice)), delim), "[]")
-}
-
-func stringToSlice(input string, delim string) []int {
-	slice := []int{}
-	for _, char := range strings.Split(input, delim) {
-		value, err := strconv.Atoi(char)
-		if err != nil {
-			// ... handle error
-			panic(err)
-		}
-		slice = append(slice, value)
+func equals(s1 []int, s2 []int) bool {
+	if len(s1) != len(s2) {
+		return false
 	}
-	return slice
+	for _, e := range s1 {
+		if !contains(s2, e) {
+			return false
+		}
+	}
+	return true
 }
 
 // source: https://stackoverflow.com/a/10485970/3737152
