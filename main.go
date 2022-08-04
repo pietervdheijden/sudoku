@@ -17,9 +17,9 @@ func main() {
 	fmt.Println("First, read the Sudoku from file")
 	// sudoku.read("sudoku1.txt")
 	// sudoku.read("sudoku2.txt")
-	// sudoku.read("sudoku3.txt")
+	sudoku.read("sudoku3.txt")
 	// sudoku.read("sudoku4.txt")
-	sudoku.read("sudoku5.txt")
+	// sudoku.read("sudoku5.txt")
 	fmt.Println(sudoku)
 
 	i := 0
@@ -35,7 +35,7 @@ func main() {
 		if !updated {
 			sudoku.print()
 			
-			fmt.Println("Y:")
+			fmt.Println("Options:")
 			for i := 0; i < 9; i++ {
 				cells := sudoku.getCellsByY(i)
 				for _, cells := range cells {
@@ -43,25 +43,6 @@ func main() {
 				}
 				fmt.Println()
 			}
-
-			fmt.Println("X:")
-			for i := 0; i < 9; i++ {
-				cells := sudoku.getCellsByX(i)
-				for _, cells := range cells {
-					fmt.Print(cells.options)
-				}
-				fmt.Println()
-			}
-			
-			fmt.Println("Square:")
-			for i := 0; i < 9; i++ {
-				cells := sudoku.getCellsBySquare(i)
-				for _, cells := range cells {
-					fmt.Print(cells.options)
-				}
-				fmt.Println()
-			}
-			
 
 			panic("Couldn't find an option to move. Sudoku is too hard for the algorithm!")
 		}
@@ -241,6 +222,55 @@ func (sudoku *Sudoku) updateOptions() {
 		cellsX.updateOptions()
 		cellsSquare.updateOptions()
 	}
+
+	// TODO: foreach square, check all rows and cols
+	// TODO: refactor
+	// TODO: also run for cols and rows (in (cells Cell9Collection) updateOptions()?)
+	for i := 0; i < 9; i++ {
+		square := sudoku.getCellsBySquare(i)
+		for number := 1; number <= 9; number++ {
+			found := false
+			rows := []int{}
+			cols := []int{}
+			for c1 := 0; c1 < 9; c1++ {
+				if square[c1].number == number {
+					found = true
+					break
+				}
+				if !contains(square[c1].options, number) {
+					continue
+				}
+				if !contains(rows, square[c1].y) {
+					rows = append(rows, square[c1].y)
+				}
+				if !contains(cols, square[c1].x) {
+					cols = append(cols, square[c1].x)
+				}
+			}
+			if found {
+				continue
+			}
+			if len(rows) == 1 {
+				row := sudoku.getCellsByY(rows[0])
+				for c2 := 0; c2 < 9; c2++ {
+					if (row[c2].square == i) {
+						continue
+					}
+					row[c2].removeOption(number)
+				}
+			}
+			if len(cols) == 1 {
+				col := sudoku.getCellsByX(cols[0])
+				for c2 := 0; c2 < 9; c2++ {
+					if (col[c2].square == i) {
+						continue
+					}
+					col[c2].removeOption(number)
+				}
+			}
+		}
+	}
+	
 }
 
 func (cells Cell9Collection) updateOptions() {
@@ -284,7 +314,6 @@ func (cells Cell9Collection) updateOptions() {
 	// TODO: refactor, consider merging with equals() check above
 	// Check subsets
 	for c1 := 0; c1 < 9; c1++ {
-		fmt.Println()
 		options := (*cells[c1]).options
 		if len(options) == 0 {
 			continue
@@ -300,18 +329,11 @@ func (cells Cell9Collection) updateOptions() {
 						numbersFound = append(numbersFound, o)
 					}	
 				}
-
-				// fmt.Println(options, optionsC2, count, numbersFound)
-				// numbersFound = append(numbersFound, (*cells[c2]).options...)
 			}
 		}
 		if len(options) != count || !equals(options, numbersFound) {
 			continue;
 		}
-		// fmt.Println("true")
-		// fmt.Println(options)
-		// fmt.Println(count)
-		// fmt.Println(numbersFound)
 		for c3 := 0; c3 < 9; c3++ {
 			if subset(options, (*cells[c3]).options) {
 				continue
