@@ -16,3 +16,11 @@ Golang links:
 - https://go.dev/ref/spec
 - https://vimeo.com/53221558
 - https://go.dev/doc/codewalk/functions/
+
+
+Sudoku tactics:
+- XYZ wing: https://www.sudokuwiki.org/XYZ_Wing
+- A Sudoku should have a unique solution.
+- Single cell = naked singles
+
+Helper: https://www.sudoku-solutions.com/
