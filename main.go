@@ -84,6 +84,7 @@ func main() {
 
 // TODO: rename x and y to column and row
 // TODO: consider renaming options to candidates
+// TODO: consider renaming x and y to column and row
 type Cell struct {
 	id int
 	x int
