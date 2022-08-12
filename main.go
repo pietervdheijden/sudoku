@@ -10,29 +10,25 @@ import (
 )
 
 func main() {
-	fmt.Println("Let's solve this Sudoku!")
+    // solve("sudoku_level1.txt")
+	// solve("sudoku_level6_1.txt") // edition 225, puzzle 75
+	// solve("sudoku_level6_2.txt") // edition 225, puzzle 77
+	// solve("sudoku_level6_3.txt") // edition 225, puzzle 79
+	// solve("sudoku_level6_4.txt") // edition 225, puzzle 83
+	// solve("sudoku_level8_1.txt") // edition 134, puzzle 26
+	// solve("sudoku_level8_2.txt") // edition 134, puzzle 28
+	// solve("sudoku_level8_3.txt") // edition 134, puzzle 30
+	solve("sudoku_level9_1.txt") // edition 134, puzzle 7
+	// solve("sudoku_level9_2.txt") // edition 134, puzzle 17
+	// solve("sudoku_level9_3.txt") // edition 134, puzzle 25
+	// solve("sudoku_level9_4.txt") // edition 134, puzzle 27
+	// solve("sudoku_level9_xwing.txt") // edition 134, techniques, x-wing
+	// solve("sudoku_level9_ywing.txt") // edition 134, techniques, y-wing
+}
 
+func solve(puzzle string) {
 	sudoku := Sudoku{}
-    
-	fmt.Println("First, read the Sudoku from file")
-	// sudoku.read("sudoku_level1.txt")
-	// sudoku.read("sudoku_level6_1.txt")
-	// sudoku.read("sudoku_level6_2.txt") // edition 225, puzzle 77
-	// sudoku.read("sudoku_level6_3.txt") // edition 225, puzzle 79
-	// sudoku.read("sudoku_level6_4.txt") // edition 225, puzzle 83
-	// sudoku.read("sudoku_level8_1.txt") // edition 134, puzzle 26
-	// sudoku.read("sudoku_level8_2.txt") // edition 134, puzzle 28
-	// sudoku.read("sudoku_level8_3.txt") // edition 134, puzzle 30
-	sudoku.read("sudoku_level9_1.txt") // edition 134, puzzle 7
-	// sudoku.read("sudoku_level9_2.txt") // edition 134, puzzle 17
-	// sudoku.read("sudoku_level9_3.txt") // edition 134, puzzle 25
-	// sudoku.read("sudoku_level9_3_wip.txt") // edition 134, puzzle 25
-	// sudoku.read("sudoku_level9_4.txt") // edition 134, puzzle 27
-	// sudoku.read("sudoku_level9_4_wip.txt") // edition 134, puzzle 27
-	// sudoku.read("sudoku_level9_xwing.txt") // edition 134, techniques, x-wing
-	// sudoku.read("sudoku_level9_ywing.txt") // edition 134, techniques, y-wing
-	fmt.Println(sudoku)
-
+    sudoku.read(puzzle)
 	i := 0
 	for {
 		i++
@@ -43,33 +39,9 @@ func main() {
 		}
 		sudoku.updateOptions()
 		updated := sudoku.updateNumbers()
-		sudoku.updateOptions() // todo?
 		if !updated {
 			sudoku.print()
-			
-			fmt.Println("Options:")
-			for i := 0; i < 9; i++ {
-				if i == 0 || i == 3 || i == 6 {
-					fmt.Println("__________________________________________________________________________________________")
-				}
-				cells := sudoku.getRow(i)
-				j := 0
-				for _, cells := range cells {
-					if j == 3 || j == 6 {
-						fmt.Printf("|\t")
-					}
-					j++
-
-					delim := ""
-					optionsString := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(cells.options)), delim), "[]")
-					fmt.Printf("%v\t", optionsString)
-				}
-				fmt.Println()
-				if (i == 8) {
-					fmt.Println("__________________________________________________________________________________________")
-				}
-			}
-
+            sudoku.printOptions()
 			panic("Couldn't find an option to move. Sudoku is too hard for the algorithm!")
 		}
 		if sudoku.done() {
@@ -83,6 +55,8 @@ func main() {
 }
 
 // TODO: consider renaming options to candidates
+// TODO: consider renaming Cell9Collection to 9Cells
+// TODO: consider creating type for options
 type Cell struct {
 	id int
 	row int
@@ -95,6 +69,7 @@ type Sudoku [81]Cell
 type Cell9Collection [9]*Cell
 
 func (sudoku *Sudoku) read(fileLocation string) {
+	fmt.Printf("Read Sudoku from fileLocation: %v\n", fileLocation)
 	file, err := os.Open(fileLocation)
     if err != nil {
         log.Fatal(err)
@@ -146,6 +121,31 @@ func (sudoku Sudoku) print() {
 	}
 }
 
+func (sudoku Sudoku) printOptions() {
+    fmt.Println("Options:")
+    for i := 0; i < 9; i++ {
+        if i == 0 || i == 3 || i == 6 {
+            fmt.Println("__________________________________________________________________________________________")
+        }
+        cells := sudoku.getRow(i)
+        j := 0
+        for _, cells := range cells {
+            if j == 3 || j == 6 {
+                fmt.Printf("|\t")
+            }
+            j++
+
+            delim := ""
+            optionsString := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(cells.options)), delim), "[]")
+            fmt.Printf("%v\t", optionsString)
+        }
+        fmt.Println()
+        if (i == 8) {
+            fmt.Println("__________________________________________________________________________________________")
+        }
+    }
+}
+
 func (sudoku *Sudoku) getColumn(column int) Cell9Collection {
 	cells := Cell9Collection{}
 	i := 0
@@ -180,16 +180,6 @@ func (sudoku *Sudoku) getSquare(square int) Cell9Collection{
 		}
 	}
 	return cells
-}
-
-func (sudoku *Sudoku) getCell(column, row int) *Cell {
-	for i := 0; i < len(sudoku); i++ {
-		cell := sudoku[i]
-		if cell.column == column && cell.row == row {
-			return &cell
-		}
-	}
-	panic("ERR! Could not find cell!")
 }
 
 func (sudoku Sudoku) valid() bool {
@@ -297,26 +287,25 @@ func (sudoku *Sudoku) updateOptions() {
 		}
 	}
 
-	// TODO: implement unique square
-	// TODO: rename to unique rectangle
-	tuples := []int{}
-	for i := 0; i < len(sudoku); i++ {
-		if len(sudoku[i].options) == 2 {
-			tuples = append(tuples, i)
-		}
-	}
-	fmt.Println("tuples unique square", tuples)
-	for _, c1 := range tuples {
-		for _, c2 := range tuples {
-			if c2 < c1 {
-				continue
-			}
-			for _, c3 := range tuples {
-				if c3 < c2 {
-					continue
-				}
+	// Use method unique rectangle to eliminate options
+    // Docs: https://www.learn-sudoku.com/unique-rectangle.html
+	for c1 := 0; c1 < len(sudoku); c1++  {
+        if len(sudoku[c1].options) != 2 {
+            // skip if cell does not have exactly 2 options
+            continue
+        }
+		for c2 := c1 + 1; c2 < len(sudoku); c2++ {
+			if len(sudoku[c2].options) != 2 {
+                // skip if cell does not have exactly 2 options
+                continue
+            }
+            for c3 := c2 + 1; c3 < len(sudoku); c3++ {
+                if len(sudoku[c3].options) != 2 {
+                    // skip if cell does not have exactly 2 options
+                    continue
+                }
 				if c1 == c2 || c2 == c3 || c1 == c3 {
-					// skip if cells overlap
+					// skip if cells (partially) overlap
 					continue
 				}
 				if sudoku[c1].square != sudoku[c2].square && sudoku[c2].square != sudoku[c3].square && sudoku[c1].square != sudoku[c3].square {
