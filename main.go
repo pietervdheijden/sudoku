@@ -17,8 +17,8 @@ func main() {
 	// solve("sudoku_level6_4.txt") // edition 225, puzzle 83
 	// solve("sudoku_level8_1.txt") // edition 134, puzzle 26
 	// solve("sudoku_level8_2.txt") // edition 134, puzzle 28
-	// solve("sudoku_level8_3.txt") // edition 134, puzzle 30
-	solve("sudoku_level9_1.txt") // edition 134, puzzle 7
+	solve("sudoku_level8_3.txt") // edition 134, puzzle 30
+	// solve("sudoku_level9_1.txt") // edition 134, puzzle 7
 	// solve("sudoku_level9_2.txt") // edition 134, puzzle 17
 	// solve("sudoku_level9_3.txt") // edition 134, puzzle 25
 	// solve("sudoku_level9_4.txt") // edition 134, puzzle 27
@@ -37,7 +37,15 @@ func solve(puzzle string) {
 		if !sudoku.valid() {
 			panic("Sudoku is not valid!")
 		}
-		sudoku.updateOptions()
+        for {
+            // Keep updating options until all "updates" are found
+            // For example, if there are 3 algorithms and the 3rd algorithm removes an option,
+            // run all 3 algorithms again to check if the other algorithms can now also remove an option.
+            updated := sudoku.updateOptions()
+            if !updated {
+                break
+            }
+        }
 		updated := sudoku.updateNumbers()
 		if !updated {
 			sudoku.print()
@@ -220,11 +228,15 @@ func (sudoku Sudoku) done() bool {
 	return true
 }
 
-func (sudoku *Sudoku) updateOptions() {
+func (sudoku *Sudoku) updateOptions() bool {
+    fmt.Println("Update options")
+    updated := false
+
 	// When number != 0, set options to empty array
 	for i := 0; i < len(sudoku); i++ {
-		if sudoku[i].number != 0 {
+		if sudoku[i].number != 0 && len(sudoku[i].options) != 0 {
 			sudoku[i].options = []int{}
+            updated = true
 		}
 	}
 
@@ -234,10 +246,13 @@ func (sudoku *Sudoku) updateOptions() {
 		column := sudoku.getColumn(i)
 		square := sudoku.getSquare(i)
 
-		row.updateOptions()
-		column.updateOptions()
-		square.updateOptions()
-	}
+		updatedRow := row.updateOptions()
+		updatedColumn := column.updateOptions()
+		updatedSquare := square.updateOptions()
+        if updatedRow || updatedColumn || updatedSquare {
+            updated = true
+        }
+    }
 
 	// TODO: foreach square, check all rows and cols
 	// TODO: refactor
@@ -272,7 +287,10 @@ func (sudoku *Sudoku) updateOptions() {
 					if (row[c2].square == i) {
 						continue
 					}
-					row[c2].removeOption(number)
+					removed := row[c2].removeOption(number)
+                    if removed {
+                        updated = true
+                    }
 				}
 			}
 			if len(cols) == 1 {
@@ -281,7 +299,10 @@ func (sudoku *Sudoku) updateOptions() {
 					if (col[c2].square == i) {
 						continue
 					}
-					col[c2].removeOption(number)
+					removed := col[c2].removeOption(number)
+                    if removed {
+                        updated = true
+                    }
 				}
 			}
 		}
@@ -331,7 +352,8 @@ func (sudoku *Sudoku) updateOptions() {
 				}
 
 				// Unique rectangle found! Remove c1.options from c4.options
-				sudoku[c4].removeOptions(sudoku[c1].options)				
+				sudoku[c4].removeOptions(sudoku[c1].options)
+                updated = true		
 			}
 		}
 	}
@@ -339,10 +361,13 @@ func (sudoku *Sudoku) updateOptions() {
 	// TODO: implement X wing
 	// TODO: implement XY wing
 	// TODO: implement XYZ wing
-	
+
+    return updated
 }
 
-func (cells Cell9Collection) updateOptions() {
+func (cells Cell9Collection) updateOptions() bool {
+    updated := false
+
 	// When number != 0, remove the option from the other cells 
 	for c1 := 0; c1 < len(cells); c1++ {
 		for c2 := 0; c2 < len(cells); c2++ {
@@ -350,7 +375,10 @@ func (cells Cell9Collection) updateOptions() {
 			if c1 == c2 || numberC2 == 0 {
 				continue
 			}
-			cells[c1].removeOption(numberC2)
+            removed := cells[c1].removeOption(numberC2)
+            if removed {
+                updated = true
+            }
 		}
 	}
 
@@ -375,7 +403,10 @@ func (cells Cell9Collection) updateOptions() {
 				continue
 			}
 			for _, number := range options {
-				cells[c3].removeOption(number)
+                removed := cells[c3].removeOption(number)
+                if removed {
+                    updated = true
+                }
 			}
 		}
 	}
@@ -408,13 +439,19 @@ func (cells Cell9Collection) updateOptions() {
 				continue
 			}
 			for _, number := range options {
-				cells[c3].removeOption(number)
+				removed := cells[c3].removeOption(number)
+                if removed {
+                    updated = true
+                }
 			}
 		}
 	}
+
+    return updated
 }
 
 func (sudoku *Sudoku) updateNumbers() bool {
+    fmt.Println("updateNumbers()")
 	updated := false
 
 	// Set number when the cell only has 1 option
@@ -502,13 +539,14 @@ func contains(s []int, e int) bool {
     return false
 }
 
-func (cell *Cell) removeOption(value int) {
+func (cell *Cell) removeOption(value int) bool {
 	for i, option := range (*cell).options {
 		if option == value {
 			(*cell).options = append((*cell).options[:i], (*cell).options[i+1:]...)
-			return
+			return true
 		}
 	}
+    return false
 }
 
 func (cell *Cell) removeOptions(options []int) {
