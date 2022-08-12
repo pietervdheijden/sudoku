@@ -22,8 +22,8 @@ func main() {
 	// sudoku.read("sudoku_level6_4.txt") // edition 225, puzzle 83
 	// sudoku.read("sudoku_level8_1.txt") // edition 134, puzzle 26
 	// sudoku.read("sudoku_level8_2.txt") // edition 134, puzzle 28
-	sudoku.read("sudoku_level8_3.txt") // edition 134, puzzle 30
-	// sudoku.read("sudoku_level9_1.txt") // edition 134, puzzle 7
+	// sudoku.read("sudoku_level8_3.txt") // edition 134, puzzle 30
+	sudoku.read("sudoku_level9_1.txt") // edition 134, puzzle 7
 	// sudoku.read("sudoku_level9_2.txt") // edition 134, puzzle 17
 	// sudoku.read("sudoku_level9_3.txt") // edition 134, puzzle 25
 	// sudoku.read("sudoku_level9_3_wip.txt") // edition 134, puzzle 25
@@ -52,7 +52,7 @@ func main() {
 				if i == 0 || i == 3 || i == 6 {
 					fmt.Println("__________________________________________________________________________________________")
 				}
-				cells := sudoku.getCellsByY(i)
+				cells := sudoku.getRow(i)
 				j := 0
 				for _, cells := range cells {
 					if j == 3 || j == 6 {
@@ -82,13 +82,11 @@ func main() {
 	sudoku.print()
 }
 
-// TODO: rename x and y to column and row
 // TODO: consider renaming options to candidates
-// TODO: consider renaming x and y to column and row
 type Cell struct {
 	id int
-	x int
-	y int
+	row int
+	column int
 	square int
 	number int
 	options []int
@@ -105,9 +103,9 @@ func (sudoku *Sudoku) read(fileLocation string) {
 
 	scanner := bufio.NewScanner(file)
 	id := 0
-	y := 0
+	row := 0
     for scanner.Scan() {
-		for x, v := range strings.Split(scanner.Text(), "") {
+		for column, v := range strings.Split(scanner.Text(), "") {
 			number, err := strconv.Atoi(v)
 			if err != nil {
 				// ... handle error
@@ -117,18 +115,18 @@ func (sudoku *Sudoku) read(fileLocation string) {
 			if number != 0 {
 				options = []int{}
 			}
-			square := (y/3)*3 + x/3 // (y/3)*3 != y, e.g. (4/3)*3=3
+			square := (row/3)*3 + column/3 // (x/3)*3 != x, e.g. (4/3)*3=3
 			sudoku[id] = Cell{
 				id: id,
-				x: x,
-				y: y,
+				row: row,
+				column: column,
 				square: square,
 				number: number,
 				options: options,	
 			}
 			id++
 		}
-		y++
+		row++
     }
     if err := scanner.Err(); err != nil {
         log.Fatal(err)
@@ -140,19 +138,19 @@ func (sudoku *Sudoku) read(fileLocation string) {
 func (sudoku Sudoku) print() {
 	fmt.Println("Sudoku:")
 
-	for y := 0; y < 9; y++ {
-		for _, cell := range sudoku.getCellsByY(y) {
+	for row := 0; row < 9; row++ {
+		for _, cell := range sudoku.getRow(row) {
 			fmt.Printf("%d", (*cell).number)
 		}
 		fmt.Printf("\n")
 	}
 }
 
-func (sudoku *Sudoku) getCellsByX(x int) Cell9Collection {
+func (sudoku *Sudoku) getColumn(column int) Cell9Collection {
 	cells := Cell9Collection{}
 	i := 0
 	for j := 0; j < len(sudoku); j++ {
-		if (sudoku[j].x == x) {
+		if (sudoku[j].column == column) {
 			cells[i] = &sudoku[j]
 			i++
 		}
@@ -160,11 +158,11 @@ func (sudoku *Sudoku) getCellsByX(x int) Cell9Collection {
 	return cells
 }
 
-func (sudoku *Sudoku) getCellsByY(y int) Cell9Collection{
+func (sudoku *Sudoku) getRow(row int) Cell9Collection{
 	cells := Cell9Collection{}
 	i := 0
 	for j := 0; j < len(sudoku); j++ {
-		if (sudoku[j].y == y) {
+		if (sudoku[j].row == row) {
 			cells[i] = &sudoku[j]
 			i++
 		}
@@ -172,7 +170,7 @@ func (sudoku *Sudoku) getCellsByY(y int) Cell9Collection{
 	return cells
 }
 
-func (sudoku *Sudoku) getCellsBySquare(square int) Cell9Collection{
+func (sudoku *Sudoku) getSquare(square int) Cell9Collection{
 	cells := Cell9Collection{}
 	i := 0
 	for j := 0; j < len(sudoku); j++ {
@@ -184,10 +182,10 @@ func (sudoku *Sudoku) getCellsBySquare(square int) Cell9Collection{
 	return cells
 }
 
-func (sudoku *Sudoku) getCell(x, y int) *Cell {
+func (sudoku *Sudoku) getCell(column, row int) *Cell {
 	for i := 0; i < len(sudoku); i++ {
 		cell := sudoku[i]
-		if cell.x == x && cell.y == y {
+		if cell.column == column && cell.row == row {
 			return &cell
 		}
 	}
@@ -196,15 +194,12 @@ func (sudoku *Sudoku) getCell(x, y int) *Cell {
 
 func (sudoku Sudoku) valid() bool {
 	for i := 0; i < 9; i++ {
-		cellsY := sudoku.getCellsByY(i)
-		cellsX := sudoku.getCellsByX(i)
-		cellsSquare := sudoku.getCellsBySquare(i)
+		row := sudoku.getRow(i)
+		column := sudoku.getColumn(i)
+		square := sudoku.getSquare(i)
 
-		if !cellsY.valid() || !cellsX.valid() || !cellsSquare.valid() {
-			fmt.Println("i", i)
-			fmt.Println("cellsY.valid()", cellsY.valid())
-			fmt.Println("cellsX.valid()", cellsX.valid())
-			fmt.Println("cellsSquare.valid()", cellsSquare.valid())
+		if !row.valid() || !column.valid() || !square.valid() {
+			fmt.Printf("i=%d, row.valid()=%v, column.valid()=%v, square.valid()=%v\n", i, row.valid(), column.valid(), square.valid())
 			return false
 		}
 	}
@@ -228,7 +223,7 @@ func (cells Cell9Collection) valid() bool{
 func (sudoku Sudoku) done() bool {
 	for i := 0; i < len(sudoku); i++ {
 		if sudoku[i].number == 0 {
-			fmt.Printf("Not done: sudoku[%d][%d] == 0\n", sudoku[i].y, sudoku[i].x)
+			fmt.Printf("Not done: sudoku[row:%d][column:%d] == 0\n", sudoku[i].row, sudoku[i].column)
 			return false
 		}
 	}
@@ -245,20 +240,20 @@ func (sudoku *Sudoku) updateOptions() {
 
 	// Update options for each row, column and square
 	for i := 0; i < 9; i++ {
-		cellsY := sudoku.getCellsByY(i)
-		cellsX := sudoku.getCellsByX(i)
-		cellsSquare := sudoku.getCellsBySquare(i)
+		row := sudoku.getRow(i)
+		column := sudoku.getColumn(i)
+		square := sudoku.getSquare(i)
 
-		cellsY.updateOptions()
-		cellsX.updateOptions()
-		cellsSquare.updateOptions()
+		row.updateOptions()
+		column.updateOptions()
+		square.updateOptions()
 	}
 
 	// TODO: foreach square, check all rows and cols
 	// TODO: refactor
 	// TODO: also run for cols and rows (in (cells Cell9Collection) updateOptions()?)
 	for i := 0; i < 9; i++ {
-		square := sudoku.getCellsBySquare(i)
+		square := sudoku.getSquare(i)
 		for number := 1; number <= 9; number++ {
 			found := false
 			rows := []int{}
@@ -271,18 +266,18 @@ func (sudoku *Sudoku) updateOptions() {
 				if !contains(square[c1].options, number) {
 					continue
 				}
-				if !contains(rows, square[c1].y) {
-					rows = append(rows, square[c1].y)
+				if !contains(rows, square[c1].row) {
+					rows = append(rows, square[c1].row)
 				}
-				if !contains(cols, square[c1].x) {
-					cols = append(cols, square[c1].x)
+				if !contains(cols, square[c1].column) {
+					cols = append(cols, square[c1].column)
 				}
 			}
 			if found {
 				continue
 			}
 			if len(rows) == 1 {
-				row := sudoku.getCellsByY(rows[0])
+				row := sudoku.getRow(rows[0])
 				for c2 := 0; c2 < 9; c2++ {
 					if (row[c2].square == i) {
 						continue
@@ -291,7 +286,7 @@ func (sudoku *Sudoku) updateOptions() {
 				}
 			}
 			if len(cols) == 1 {
-				col := sudoku.getCellsByX(cols[0])
+				col := sudoku.getColumn(cols[0])
 				for c2 := 0; c2 < 9; c2++ {
 					if (col[c2].square == i) {
 						continue
@@ -328,13 +323,11 @@ func (sudoku *Sudoku) updateOptions() {
 					// 2 cells have to be in the same square
 					continue
 				}
-				// TODO: rename y to row
-				if sudoku[c1].y != sudoku[c2].y && sudoku[c2].y != sudoku[c3].y && sudoku[c1].y != sudoku[c3].y {
+				if sudoku[c1].row != sudoku[c2].row && sudoku[c2].row != sudoku[c3].row && sudoku[c1].row != sudoku[c3].row {
 					// 2 cells have to be in the same row
 					continue
 				}
-				// TODO: rename x to column
-				if sudoku[c1].x != sudoku[c2].x && sudoku[c2].x != sudoku[c3].x && sudoku[c1].x != sudoku[c3].x {
+				if sudoku[c1].column != sudoku[c2].column && sudoku[c2].column != sudoku[c3].column && sudoku[c1].column != sudoku[c3].column {
 					// 2 cells have to be in the same column
 					continue
 				}
@@ -445,14 +438,14 @@ func (sudoku *Sudoku) updateNumbers() bool {
 
 	// Update numbers for each row, column and square
 	for i := 0; i < 9; i++ {
-		cellsY := sudoku.getCellsByY(i)
-		cellsX := sudoku.getCellsByX(i)
-		cellsSquare := sudoku.getCellsBySquare(i)
+		row := sudoku.getRow(i)
+		column := sudoku.getColumn(i)
+		square := sudoku.getSquare(i)
 
-		updatedY := cellsY.updateNumbers()
-		updatedX := cellsX.updateNumbers()
-		updatedSquare := cellsSquare.updateNumbers()
-		if updatedY || updatedX || updatedSquare {
+		updatedRow := row.updateNumbers()
+		updatedColumn := column.updateNumbers()
+		updatedSquare := square.updateNumbers()
+		if updatedRow || updatedColumn || updatedSquare {
 			updated = true
 		}
 	}
