@@ -17,8 +17,8 @@ func main() {
 	// solve("sudoku_level6_4.txt") // edition 225, puzzle 83
 	// solve("sudoku_level8_1.txt") // edition 134, puzzle 26
 	// solve("sudoku_level8_2.txt") // edition 134, puzzle 28
-	solve("sudoku_level8_3.txt") // edition 134, puzzle 30
-	// solve("sudoku_level9_1.txt") // edition 134, puzzle 7
+	// solve("sudoku_level8_3.txt") // edition 134, puzzle 30
+	solve("sudoku_level9_1.txt") // edition 134, puzzle 7
 	// solve("sudoku_level9_2.txt") // edition 134, puzzle 17
 	// solve("sudoku_level9_3.txt") // edition 134, puzzle 25
 	// solve("sudoku_level9_4.txt") // edition 134, puzzle 27
@@ -382,71 +382,36 @@ func (cells Cell9Collection) updateOptions() bool {
 		}
 	}
 
-	// When x cells have the same x options, remove the options from the other cells
-	// For example, when cell 1 and 2 both have options 4 and 6, none of the other cells are allowed to have option 4 or 6
+	// Eliminate options by subsets
+	// When cell C1 has X options, and there exist X-1 other cells (c2) with a subset of X, then the X options can be removed from the remaining cells (c3).
+	// Example 1: when cell 1 and 2 both have options (1,2), then options (1,2) can be removed from cells 3,...,9.
+	// Example 2: when cell 1 has options (1,2,3), cell 2 has options (1,2) and cell 3 has options (2,3), then options (1,2,3) can be removed from cells 4,...,9.
 	for c1 := 0; c1 < 9; c1++ {
-		options := (*cells[c1]).options
-		if len(options) == 0 {
+		optionsC1 := (*cells[c1]).options
+		if len(optionsC1) == 0 {
 			continue
 		}
-		count := 0
+		subsetCells := []int{} // = cells with a subset of options (from c1) 
 		for c2 := 0; c2 < 9; c2++ {
-			if equals(options, (*cells[c2]).options) {
-				count++
+			if subset(optionsC1, (*cells[c2]).options) {
+				subsetCells = append(subsetCells, c2)
 			}
 		}
-		if len(options) != count {
+		if len(optionsC1) != len(subsetCells) {
+			// Skip if the number of subset cells is not exactly equal to the number of options from c1.
 			continue
 		}
 		for c3 := 0; c3 < 9; c3++ {
-			if equals(options, (*cells[c3]).options) {
+			// Remove optionsC1 from all cells except the "subset cells"
+			if contains(subsetCells, c3) {
 				continue
 			}
-			for _, number := range options {
-                removed := cells[c3].removeOption(number)
-                if removed {
-                    updated = true
-                }
+			removed := cells[c3].removeOptions(optionsC1)
+			if removed {
+				updated = true
 			}
 		}
 	}
-
-	// TODO: refactor, consider merging with equals() check above
-	// Check subsets
-	for c1 := 0; c1 < 9; c1++ {
-		options := (*cells[c1]).options
-		if len(options) == 0 {
-			continue
-		}
-		count := 0
-		numbersFound := []int{}
-		for c2 := 0; c2 < 9; c2++ {
-			optionsC2 := (*cells[c2]).options
-			if subset(options, optionsC2) {
-				count++
-				for _, o := range optionsC2 {
-					if !contains(numbersFound, o) {
-						numbersFound = append(numbersFound, o)
-					}	
-				}
-			}
-		}
-		if len(options) != count || !equals(options, numbersFound) {
-			continue;
-		}
-		for c3 := 0; c3 < 9; c3++ {
-			if subset(options, (*cells[c3]).options) {
-				continue
-			}
-			for _, number := range options {
-				removed := cells[c3].removeOption(number)
-                if removed {
-                    updated = true
-                }
-			}
-		}
-	}
-
     return updated
 }
 
@@ -529,6 +494,21 @@ func subset(s1 []int, s2 []int) bool {
 	return true
 }
 
+func merge(s1 []int, s2 []int) []int {
+	s3 := []int{}
+	for _, v := range s1 {
+		if !contains(s3, v) {
+			s3 = append(s3, v)
+		}
+	}
+	for _, v := range s2 {
+		if !contains(s3, v) {
+			s3 = append(s3, v)
+		}
+	}
+	return s3
+}
+
 // source: https://stackoverflow.com/a/10485970/3737152
 func contains(s []int, e int) bool {
     for _, a := range s {
@@ -549,8 +529,13 @@ func (cell *Cell) removeOption(value int) bool {
     return false
 }
 
-func (cell *Cell) removeOptions(options []int) {
+func (cell *Cell) removeOptions(options []int) bool {
+	removed := false
 	for _, option := range options {
-		cell.removeOption(option)
+		r := cell.removeOption(option)
+		if r {
+			removed = true
+		}
 	}
+	return removed
 }
