@@ -22,9 +22,9 @@ func main() {
 		// "sudoku_level8_3.txt", // edition 134, puzzle 30
 		// "sudoku_level9_1.txt", // edition 134, puzzle 17
 		// "sudoku_level9_2.txt", // edition 134, puzzle 25 (contradiction)
-		"sudoku_level9_3.txt", // edition 134, puzzle 27 (XY + XYZ)
-		// "sudoku_level9_xwing.txt", // edition 134, techniques, x-wing
-		// "sudoku_level9_ywing.txt", // edition 134, techniques, y-wing
+		// "sudoku_level9_3.txt", // edition 134, puzzle 27 (XY wing + XYZ wing)
+		// "sudoku_level9_4.txt", // edition 134, puzzle 29 (contradiction)
+		"sudoku_level9_5.txt", // edition 134, puzzle 31 (X wing)
 	}
 
 
@@ -375,8 +375,95 @@ func (sudoku *Sudoku) updateOptions() bool {
 		}
 	}
 
-	// TODO: implement X wing
+	// TODO: consider renaming method to technique
+	// Use method X wing to eliminate options
 	// Source: https://www.learn-sudoku.com/x-wing.html
+	for c1 := 0; c1 < len(sudoku); c1++ {
+		for c2 := c1+1; c2 < len(sudoku); c2++ {
+			for c3 := c2+1; c3 < len(sudoku); c3++ {
+				for c4 := c3+1; c4 < len(sudoku); c4++ {
+					if sudoku[c1].row != sudoku[c2].row || sudoku[c3].row != sudoku[c4].row {
+						continue
+					}
+					if sudoku[c1].column != sudoku[c3].column || sudoku[c2].column != sudoku[c4].column {
+						continue
+					}
+					intersect := intersectSlices(sudoku[c1].options, sudoku[c2].options, sudoku[c3].options, sudoku[c4].options)
+					if len(intersect) == 0 {
+						continue
+					}
+
+					// Check if any of the other cells in the same *row* contain the intersect option
+					for _, option := range intersect {
+						found := false
+						for c5 := 0; c5 < len(sudoku); c5++ {
+							if c5 == c1 || c5 == c2 || c5 == c3 || c5 == c4 {
+								continue
+							}
+							if sudoku[c5].row != sudoku[c1].row && sudoku[c5].row != sudoku[c3].row {
+								continue
+							} 
+							if contains(sudoku[c5].options, option) {
+								found = true
+							}
+						}
+						if found {
+							continue
+						}
+
+						// None of the other cells in the same *rows* contain the intersect option
+						// X wing found! Remove option from other cells in the same *columns*.
+						for c5 := 0; c5 < len(sudoku); c5++ {
+							if c5 == c1 || c5 == c2 || c5 == c3 || c5 == c4 {
+								continue
+							}
+							if sudoku[c5].column != sudoku[c1].column && sudoku[c5].column != sudoku[c2].column {
+								continue
+							}
+							removed := sudoku[c5].removeOption(option)
+							if removed {
+								updated = true
+							}
+						}
+					}
+
+					// Check if any of the other cells in the same *column* contain the intersect option
+					for _, option := range intersect {
+						found := false
+						for c5 := 0; c5 < len(sudoku); c5++ {
+							if c5 == c1 || c5 == c2 || c5 == c3 || c5 == c4 {
+								continue
+							}
+							if sudoku[c5].column != sudoku[c1].column && sudoku[c5].column != sudoku[c2].column {
+								continue
+							} 
+							if contains(sudoku[c5].options, option) {
+								found = true
+							}
+						}
+						if found {
+							continue
+						}
+
+						// None of the other cells in the same *columns* contain the intersect option
+						// X wing found! Remove option from other cells in the same *rows*.
+						for c5 := 0; c5 < len(sudoku); c5++ {
+							if c5 == c1 || c5 == c2 || c5 == c3 || c5 == c4 {
+								continue
+							}
+							if sudoku[c5].row != sudoku[c1].row && sudoku[c5].row != sudoku[c3].row {
+								continue
+							}
+							removed := sudoku[c5].removeOption(option)
+							if removed {
+								updated = true
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
 	// Use method XY wing to eliminate options
 	// Source: https://www.learn-sudoku.com/xy-wing.html
@@ -677,6 +764,24 @@ func intersect(s1 []int, s2 []int) []int {
 		}
 	}
 	return s3
+}
+
+func intersectSlices(slices ...[]int) []int {
+	s := []int{}
+	for _, slice := range slices {
+		intersect := true
+		for _, v := range slice {
+			for _, otherSlice := range slices {
+				if !contains(otherSlice, v) {
+					intersect = false
+				}
+			}
+			if intersect && !contains(s, v) {
+				s = append(s, v)
+			}
+		}
+	}
+	return s
 }
 
 // returns element in s1, but not in s2
