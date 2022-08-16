@@ -376,7 +376,7 @@ func (sudoku *Sudoku) updateOptions() bool {
 	}
 
 	// TODO: implement X wing
-	// TODO: implement XYZ wing
+	// Source: https://www.learn-sudoku.com/x-wing.html
 
 	// Use method XY wing to eliminate options
 	// Source: https://www.learn-sudoku.com/xy-wing.html
@@ -432,6 +432,70 @@ func (sudoku *Sudoku) updateOptions() bool {
 					}
 					if sudoku.affect(c2, c4) && sudoku.affect(c3, c4) {
 						removed := sudoku[c4].removeOption(exceptC2[0])
+						if removed {
+							updated = true
+						}	
+					}
+				}
+
+				// sudoku.print()
+				// sudoku.printOptions()
+				// fmt.Printf("XY wing found! c1=%v, c2=%v, c3=%v, c4s=%v\n", c1,c2,c3,c4s)
+				// fmt.Printf("intersectC2=%v, intersectC3=%v, exceptC2=%v, exceptC3=%v\n", intersectC2,intersectC3,exceptC2, exceptC3)
+				// // panic("END")
+			}
+		}
+	}
+
+	// Use method XYZ wing to eliminate options
+	// Source: https://www.sudokuwiki.org/XYZ_Wing
+	for c1 := 0; c1 < len(sudoku); c1++ {
+		if len(sudoku[c1].options) != 3 {
+			continue
+		}
+		for c2 := 0; c2 < len(sudoku); c2++ {
+			if len(sudoku[c2].options) != 2 {
+				continue
+			}
+			if !sudoku.affect(c1, c2) {
+				continue
+			}
+			if !subset(sudoku[c1].options, sudoku[c2].options) {
+				continue
+			}
+			intersectC2 := intersect(sudoku[c2].options, sudoku[c1].options)
+			if len(intersectC2) != 2 {
+				continue
+			}
+			for c3 := 0; c3 < len(sudoku); c3++ {
+				if len(sudoku[c3].options) != 2 {
+					continue
+				}
+				if equals(sudoku[c1].options, sudoku[c3].options) {
+					continue
+				}
+				if !sudoku.affect(c1, c3) {
+					continue
+				}
+				if !subset(sudoku[c1].options, sudoku[c2].options) {
+					continue
+				}
+				intersectC3 := intersect(sudoku[c3].options, sudoku[c1].options)
+				if len(intersectC3) != 2 {
+					continue
+				}
+				intersectC2C3 := intersect(intersectC2, intersectC3)
+				if len(intersectC2C3) != 1 {
+					continue
+				}
+
+				// XYZ wing found! Remove intersectC2C3 from cells affected by c1, c2 and c3.
+				for c4 := 0; c4 < len(sudoku); c4++ {
+					if c4 == c1 || c4 == c2 || c4 == c3 {
+						continue
+					}
+					if sudoku.affect(c1, c4) && sudoku.affect(c2, c4) && sudoku.affect(c3, c4) {
+						removed := sudoku[c4].removeOption(intersectC2C3[0])
 						if removed {
 							updated = true
 						}	
