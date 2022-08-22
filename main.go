@@ -12,19 +12,20 @@ import (
 func main() {
 	puzzles := []string{
 		// "sudoku_level1.txt",
-		// "sudoku_level6_1.txt", // edition 225, puzzle 7
-		// "sudoku_level6_2.txt", // edition 225, puzzle 75
-		// "sudoku_level6_3.txt", // edition 225, puzzle 77
-		// "sudoku_level6_4.txt", // edition 225, puzzle 79
-		// "sudoku_level6_5.txt", // edition 225, puzzle 83
-		// "sudoku_level8_1.txt", // edition 134, puzzle 26
-		// "sudoku_level8_2.txt", // edition 134, puzzle 28
-		// "sudoku_level8_3.txt", // edition 134, puzzle 30
-		// "sudoku_level9_1.txt", // edition 134, puzzle 17
+		"sudoku_level6_1.txt", // edition 225, puzzle 7
+		"sudoku_level6_2.txt", // edition 225, puzzle 75
+		"sudoku_level6_3.txt", // edition 225, puzzle 77
+		"sudoku_level6_4.txt", // edition 225, puzzle 79
+		"sudoku_level6_5.txt", // edition 225, puzzle 83
+		"sudoku_level8_1.txt", // edition 134, puzzle 26
+		"sudoku_level8_2.txt", // edition 134, puzzle 28
+		"sudoku_level8_3.txt", // edition 134, puzzle 30
+		// "sudoku_level9_1.txt", // edition 134, puzzle 17 (contradiction)
 		// "sudoku_level9_2.txt", // edition 134, puzzle 25 (contradiction)
-		// "sudoku_level9_3.txt", // edition 134, puzzle 27 (XY wing + XYZ wing)
+		"sudoku_level9_3.txt", // edition 134, puzzle 27 (XY wing + XYZ wing)
 		// "sudoku_level9_4.txt", // edition 134, puzzle 29 (contradiction)
 		"sudoku_level9_5.txt", // edition 134, puzzle 31 (X wing)
+		// "sudoku_level9_6.txt", // edition 134, puzzle 33 (contradiction)
 	}
 
 
@@ -221,7 +222,7 @@ func (sudoku Sudoku) valid() bool {
 	return true
 }
 
-func (cells Cell9Collection) valid() bool{
+func (cells Cell9Collection) valid() bool {
 	numbers := []int{}
 	for _, cell := range cells {
 		number := (*cell).number
@@ -233,6 +234,15 @@ func (cells Cell9Collection) valid() bool{
 		}
 	}
 	return true
+}
+
+func (cells Cell9Collection) contains(id int) bool {
+	for _, cell := range cells {
+		if cell.id == id {
+			return true
+		}
+	}
+	return false
 }
 
 func (sudoku Sudoku) done() bool {
@@ -263,66 +273,12 @@ func (sudoku *Sudoku) updateOptions() bool {
 		column := sudoku.getColumn(i)
 		square := sudoku.getSquare(i)
 
-		updatedRow := row.updateOptions()
-		updatedColumn := column.updateOptions()
-		updatedSquare := square.updateOptions()
+		updatedRow := sudoku.updateOptionsForCells(row)
+		updatedColumn := sudoku.updateOptionsForCells(column)
+		updatedSquare := sudoku.updateOptionsForCells(square)
         if updatedRow || updatedColumn || updatedSquare {
             updated = true
         }
-    }
-
-	// TODO: foreach square, check all rows and cols
-	// TODO: refactor
-	// TODO: also run for cols and rows (in (cells Cell9Collection) updateOptions()?)
-	for i := 0; i < 9; i++ {
-		square := sudoku.getSquare(i)
-		for number := 1; number <= 9; number++ {
-			found := false
-			rows := []int{}
-			cols := []int{}
-			for c1 := 0; c1 < 9; c1++ {
-				if square[c1].number == number {
-					found = true
-					break
-				}
-				if !contains(square[c1].options, number) {
-					continue
-				}
-				if !contains(rows, square[c1].row) {
-					rows = append(rows, square[c1].row)
-				}
-				if !contains(cols, square[c1].column) {
-					cols = append(cols, square[c1].column)
-				}
-			}
-			if found {
-				continue
-			}
-			if len(rows) == 1 {
-				row := sudoku.getRow(rows[0])
-				for c2 := 0; c2 < 9; c2++ {
-					if (row[c2].square == i) {
-						continue
-					}
-					removed := row[c2].removeOption(number)
-                    if removed {
-                        updated = true
-                    }
-				}
-			}
-			if len(cols) == 1 {
-				col := sudoku.getColumn(cols[0])
-				for c2 := 0; c2 < 9; c2++ {
-					if (col[c2].square == i) {
-						continue
-					}
-					removed := col[c2].removeOption(number)
-                    if removed {
-                        updated = true
-                    }
-				}
-			}
-		}
 	}
 
 	// Use method unique rectangle to eliminate options
@@ -375,7 +331,6 @@ func (sudoku *Sudoku) updateOptions() bool {
 		}
 	}
 
-	// TODO: consider renaming method to technique
 	// Use method X wing to eliminate options
 	// Source: https://www.learn-sudoku.com/x-wing.html
 	for c1 := 0; c1 < len(sudoku); c1++ {
@@ -524,12 +479,6 @@ func (sudoku *Sudoku) updateOptions() bool {
 						}	
 					}
 				}
-
-				// sudoku.print()
-				// sudoku.printOptions()
-				// fmt.Printf("XY wing found! c1=%v, c2=%v, c3=%v, c4s=%v\n", c1,c2,c3,c4s)
-				// fmt.Printf("intersectC2=%v, intersectC3=%v, exceptC2=%v, exceptC3=%v\n", intersectC2,intersectC3,exceptC2, exceptC3)
-				// // panic("END")
 			}
 		}
 	}
@@ -588,12 +537,6 @@ func (sudoku *Sudoku) updateOptions() bool {
 						}	
 					}
 				}
-
-				// sudoku.print()
-				// sudoku.printOptions()
-				// fmt.Printf("XY wing found! c1=%v, c2=%v, c3=%v, c4s=%v\n", c1,c2,c3,c4s)
-				// fmt.Printf("intersectC2=%v, intersectC3=%v, exceptC2=%v, exceptC3=%v\n", intersectC2,intersectC3,exceptC2, exceptC3)
-				// // panic("END")
 			}
 		}
 	}
@@ -601,8 +544,8 @@ func (sudoku *Sudoku) updateOptions() bool {
     return updated
 }
 
-func (cells Cell9Collection) updateOptions() bool {
-    updated := false
+func (sudoku *Sudoku) updateOptionsForCells(cells Cell9Collection) bool {
+	updated := false
 
 	// When number != 0, remove the option from the other cells 
 	for c1 := 0; c1 < len(cells); c1++ {
@@ -648,7 +591,78 @@ func (cells Cell9Collection) updateOptions() bool {
 			}
 		}
 	}
-    return updated
+
+	// Eliminate options by "9cells" (9cells could be a row, column or square)
+	// When number X is missing in "9cells" and the options which include X have exactly 1 row, 1 column or 1 square,
+	// X can be eliminated for the other cells in the same row, column or square.
+	// For example, consider row 1 where number 2 has to be in either cell 0,1,2, which all fall in square 1.
+	// Then number 2 can be eliminated for the other cells in square 1.
+	for number := 1; number <= 9; number++ {
+		found := false
+		rows := []int{}
+		columns := []int{}
+		squares := []int{}
+		for c1 := 0; c1 < len(cells); c1++ {
+			if cells[c1].number == number {
+				found = true
+				break
+			}
+			if !contains(cells[c1].options, number) {
+				continue
+			}
+			if !contains(rows, cells[c1].row) {
+				rows = append(rows, cells[c1].row)
+			}
+			if !contains(columns, cells[c1].column) {
+				columns = append(columns, cells[c1].column)
+			}
+			if !contains(squares, cells[c1].square) {
+				squares = append(squares, cells[c1].square)
+			}
+		}
+		if found {
+			continue
+		}
+
+		if len(rows) == 1 {
+			row := sudoku.getRow(rows[0])
+			for c2 := 0; c2 < len(row); c2++ {
+				if cells.contains(row[c2].id) {
+					continue
+				}
+				removed := row[c2].removeOption(number)
+				if removed {
+					updated = true
+				}
+			}
+		}
+		if len(columns) == 1 {
+			col := sudoku.getColumn(columns[0])
+			for c2 := 0; c2 < len(col); c2++ {
+				if cells.contains(col[c2].id) {
+					continue
+				}
+				removed := col[c2].removeOption(number)
+				if removed {
+					updated = true
+				}
+			}
+		}
+		if len(squares) == 1 {
+			square := sudoku.getSquare(squares[0])
+			for c2 := 0; c2 < len(square); c2++ {
+				if cells.contains(square[c2].id) {
+					continue
+				}
+				removed := square[c2].removeOption(number)
+				if removed {
+					updated = true
+				}
+			}
+		}
+	}
+
+	return updated
 }
 
 func (sudoku *Sudoku) updateNumbers() bool {
