@@ -11,7 +11,9 @@ import (
 
 func main() {
 	puzzles := []string{
-		// "sudoku_level1.txt",
+		
+		// Solvable
+		"sudoku_level1.txt",
 		"sudoku_level6_1.txt", // edition 225, puzzle 7
 		"sudoku_level6_2.txt", // edition 225, puzzle 75
 		"sudoku_level6_3.txt", // edition 225, puzzle 77
@@ -20,12 +22,17 @@ func main() {
 		"sudoku_level8_1.txt", // edition 134, puzzle 26
 		"sudoku_level8_2.txt", // edition 134, puzzle 28
 		"sudoku_level8_3.txt", // edition 134, puzzle 30
+		"sudoku_level9_3.txt", // edition 134, puzzle 27 (XY wing + XYZ wing)
+		"sudoku_level9_5.txt", // edition 134, puzzle 31 (X wing)
+		"sudoku_level9_7.txt", // edition 104, puzzle 9
+		"sudoku_level9_8.txt", // edition 104, puzzle 11
+		
+		// Not solvable (yet)
 		// "sudoku_level9_1.txt", // edition 134, puzzle 17 (contradiction)
 		// "sudoku_level9_2.txt", // edition 134, puzzle 25 (contradiction)
-		"sudoku_level9_3.txt", // edition 134, puzzle 27 (XY wing + XYZ wing)
 		// "sudoku_level9_4.txt", // edition 134, puzzle 29 (contradiction)
-		"sudoku_level9_5.txt", // edition 134, puzzle 31 (X wing)
 		// "sudoku_level9_6.txt", // edition 134, puzzle 33 (contradiction)
+		"sudoku_level9_9.txt", // edition 104, puzzle 13
 	}
 
 
