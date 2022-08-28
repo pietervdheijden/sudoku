@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"os"
 	"bufio"
+	"fmt"
 	"log"
-	"strings"
+	"os"
 	"strconv"
+	"strings"
 )
 
 func main() {
@@ -22,26 +22,25 @@ func main() {
 		"sudoku_level8_1.txt", // edition 134, puzzle 26
 		"sudoku_level8_2.txt", // edition 134, puzzle 28
 		"sudoku_level8_3.txt", // edition 134, puzzle 30
+		"sudoku_level9_1.txt", // edition 134, puzzle 17 (contradiction / forcing chain)
+		"sudoku_level9_2.txt", // edition 134, puzzle 25 (contradiction)
 		"sudoku_level9_3.txt", // edition 134, puzzle 27 (XY wing + XYZ wing)
+		"sudoku_level9_4.txt", // edition 134, puzzle 29 (contradiction)
 		"sudoku_level9_5.txt", // edition 134, puzzle 31 (X wing)
+		"sudoku_level9_6.txt", // edition 134, puzzle 33 (contradiction)
 		"sudoku_level9_7.txt", // edition 104, puzzle 9
 		"sudoku_level9_8.txt", // edition 104, puzzle 11
+		"sudoku_level9_9.txt", // edition 104, puzzle 13 (contradiction)
 		"sudoku_level9_10.txt", // edition 104, puzzle 15
 		"sudoku_level9_11.txt", // edition 104, puzzle 17
-		
-		
-		// Not solvable (yet)
-		// "sudoku_level9_1.txt", // edition 134, puzzle 17 (contradiction / forcing chain)
-		// "sudoku_level9_2.txt", // edition 134, puzzle 25 (contradiction)
-		// "sudoku_level9_4.txt", // edition 134, puzzle 29 (contradiction)
-		// "sudoku_level9_6.txt", // edition 134, puzzle 33 (contradiction)
-		"sudoku_level9_9.txt", // edition 104, puzzle 13
-		// "sudoku_level9_12.txt", // edition 104, puzzle 19
+		"sudoku_level9_12.txt", // edition 104, puzzle 19 (contradiction)		
 	}
 
 
 	for _, puzzle := range puzzles {
-		success := solve(puzzle)
+		sudoku := Sudoku{}
+		sudoku.read(puzzle)
+		success := sudoku.solve()
 		if !success {
 			fmt.Printf("Sudoku %v could not be solved...\n", puzzle)
 			break
@@ -50,9 +49,7 @@ func main() {
 	}
 }
 
-func solve(puzzle string) bool {
-	sudoku := Sudoku{}
-    sudoku.read(puzzle)
+func (sudoku Sudoku) solve() bool {
 	i := 0
 	for {
 		i++
@@ -71,14 +68,30 @@ func solve(puzzle string) bool {
             if !updated {
                 break
             }
+
+			// TODO: implement swordfish and jellyfish
         }
 		updated := sudoku.updateNumbers()
+		if updated {
+			fmt.Println("updated")
+		}
 		if !updated {
-			sudoku.print()
-            sudoku.printOptions()
-			// panic("Couldn't find an option to move. Sudoku is too hard for the algorithm!")
-			fmt.Println("Couldn't find an option to move. Sudoku is too hard for the algorithm!")
-			return false
+			// Guess / Brute force / Forcing pair
+			// TODO: refactor
+			for i := 0; i < len(sudoku); i++ {
+				if sudoku[i].number == 0 {
+					for _, option := range sudoku[i].options {
+						sudokuCopy := sudoku.deepCopy()
+						sudokuCopy[i].number = option
+						solved := sudokuCopy.solve()
+						if solved {
+							sudoku[i].number = option
+							break
+						}
+					}
+					break
+				}
+			}
 		}
 		if sudoku.done() {
 			break
@@ -145,7 +158,19 @@ func (sudoku *Sudoku) read(fileLocation string) {
     }
 }
 
+func (sudoku Sudoku) deepCopy() Sudoku {
+	// Copy all properties
+	sudokuCopy := sudoku
 
+	// Create a deep copy for *slice* options
+	// Source: https://www.delftstack.com/howto/go/deep-copy-in-golang/
+	for i := 0; i < len(sudoku); i++ {
+		sudokuCopy[i].options = make([]int, len(sudoku[i].options))
+		copy(sudokuCopy[i].options, sudoku[i].options)
+	}
+
+	return sudokuCopy
+}
 
 func (sudoku Sudoku) print() {
 	fmt.Println("Sudoku:")
@@ -242,6 +267,9 @@ func (cells Cell9Collection) valid() bool {
 		}
 		if number != 0 {
 			numbers = append(numbers, number)
+		}
+		if cell.number == 0 && len(cell.options) == 0 {
+			return false
 		}
 	}
 	return true
