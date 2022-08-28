@@ -12,6 +12,7 @@ import (
 func main() {
 	puzzles := []string{
 		
+		// TODO: add unit tests
 		// Solvable
 		"sudoku_level1.txt",
 		"sudoku_level6_1.txt", // edition 225, puzzle 7
