@@ -26,13 +26,17 @@ func main() {
 		"sudoku_level9_5.txt", // edition 134, puzzle 31 (X wing)
 		"sudoku_level9_7.txt", // edition 104, puzzle 9
 		"sudoku_level9_8.txt", // edition 104, puzzle 11
+		"sudoku_level9_10.txt", // edition 104, puzzle 15
+		"sudoku_level9_11.txt", // edition 104, puzzle 17
+		
 		
 		// Not solvable (yet)
-		// "sudoku_level9_1.txt", // edition 134, puzzle 17 (contradiction)
+		// "sudoku_level9_1.txt", // edition 134, puzzle 17 (contradiction / forcing chain)
 		// "sudoku_level9_2.txt", // edition 134, puzzle 25 (contradiction)
 		// "sudoku_level9_4.txt", // edition 134, puzzle 29 (contradiction)
 		// "sudoku_level9_6.txt", // edition 134, puzzle 33 (contradiction)
 		"sudoku_level9_9.txt", // edition 104, puzzle 13
+		// "sudoku_level9_12.txt", // edition 104, puzzle 19
 	}
 
 
