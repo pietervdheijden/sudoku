@@ -3,7 +3,7 @@
 ## Quick start
 
 ```bash
-docker build . -t "sudoku-api"
+docker-compose up
 ```
 
 ## Backend
@@ -11,9 +11,6 @@ Backend is written in Go.
 
 Notes:
 - HTTP framework for Go: gin: gin-gonic/gin (https://github.com/gin-gonic/gin). Tutorial: https://go.dev/doc/tutorial/web-service-gin.
-
-Links:
-- Sudoku source: https://sudoku.com/easy/
 
 Golang links:
 - https://go.dev/tour/concurrency/11
@@ -23,6 +20,9 @@ Golang links:
 - https://vimeo.com/53221558
 - https://go.dev/doc/codewalk/functions/
 
+## Sudoku info
+Links:
+- Sudoku source: https://sudoku.com/easy/
 
 Sudoku tactics:
 - XYZ wing: https://www.sudokuwiki.org/XYZ_Wing
