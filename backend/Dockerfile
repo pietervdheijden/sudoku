@@ -18,6 +18,8 @@ RUN go build -o /sudoku-api
 ## Deploy
 FROM gcr.io/distroless/base-debian10
 
+# ENV GIN_MODE=release
+
 WORKDIR /
 
 COPY --from=build /sudoku-api /sudoku-api

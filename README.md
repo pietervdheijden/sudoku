@@ -1,5 +1,11 @@
 # Sudoku
 
+## Quick start
+
+```bash
+docker build . -t "sudoku-api"
+```
+
 ## Backend
 Backend is written in Go.
 
