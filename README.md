@@ -4,7 +4,7 @@
 Backend is written in Go.
 
 Notes:
-- HTTP framework for Go: gin: gin-gonic/gin (https://github.com/gin-gonic/gin)
+- HTTP framework for Go: gin: gin-gonic/gin (https://github.com/gin-gonic/gin). Tutorial: https://go.dev/doc/tutorial/web-service-gin.
 
 Links:
 - Sudoku source: https://sudoku.com/easy/

@@ -4,39 +4,86 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
+type sudokuApiModel struct {
+	Sudoku [81]int `json:"sudoku" binding:"required"`
+}
 
 func main() {
+	router := gin.Default()
+	// TODO: add difficulty to solve
+	router.POST("/solve", solveSudoku)
+	router.POST("/hint", hintSudoku)
+	router.Run(":8080")
+}
+
+func solveSudoku(c *gin.Context) {
+	var sudokuApiModel sudokuApiModel
+
+	if err := c.BindJSON(&sudokuApiModel); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	sudoku := Sudoku{}
+	sudoku.readFromArray(sudokuApiModel.Sudoku)
+	solved := sudoku.solve()
+
+	if solved {
+		c.JSON(http.StatusOK, sudoku.toApiModel())
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Sudoku could not be solved!"})
+	}
+}
+
+func hintSudoku(c *gin.Context) {
+	// TODO: implement hint
+
+}
+
+func (sudoku *Sudoku) toApiModel() sudokuApiModel {
+	sudokuApiModel := sudokuApiModel{}
+	for row := 0; row < 9; row++ {
+		for column := 0; column < 9; column++ {
+			id := row * 9 + column
+			sudokuApiModel.Sudoku[id] = sudoku[id].number
+		}
+	}
+	return sudokuApiModel
+}
+
+func test() {
 	puzzles := []string{
 		
 		// TODO: add unit tests
-		// Solvable
-		"sudoku_level1.txt",
-		"sudoku_level6_1.txt", // edition 225, puzzle 7
-		"sudoku_level6_2.txt", // edition 225, puzzle 75
-		"sudoku_level6_3.txt", // edition 225, puzzle 77
-		"sudoku_level6_4.txt", // edition 225, puzzle 79
-		"sudoku_level6_5.txt", // edition 225, puzzle 83
-		"sudoku_level8_1.txt", // edition 134, puzzle 26
-		"sudoku_level8_2.txt", // edition 134, puzzle 28
-		"sudoku_level8_3.txt", // edition 134, puzzle 30
-		"sudoku_level9_1.txt", // edition 134, puzzle 17 (contradiction / forcing chain)
-		"sudoku_level9_2.txt", // edition 134, puzzle 25 (contradiction)
-		"sudoku_level9_3.txt", // edition 134, puzzle 27 (XY wing + XYZ wing)
-		"sudoku_level9_4.txt", // edition 134, puzzle 29 (contradiction)
-		"sudoku_level9_5.txt", // edition 134, puzzle 31 (X wing)
-		"sudoku_level9_6.txt", // edition 134, puzzle 33 (contradiction)
-		"sudoku_level9_7.txt", // edition 104, puzzle 9
-		"sudoku_level9_8.txt", // edition 104, puzzle 11
-		"sudoku_level9_9.txt", // edition 104, puzzle 13 (contradiction)
-		"sudoku_level9_10.txt", // edition 104, puzzle 15
-		"sudoku_level9_11.txt", // edition 104, puzzle 17
-		"sudoku_level9_12.txt", // edition 104, puzzle 19 (contradiction)		
+		"puzzles/sudoku_level1.txt",
+		"puzzles/sudoku_level6_1.txt", // edition 225, puzzle 7
+		"puzzles/sudoku_level6_2.txt", // edition 225, puzzle 75
+		"puzzles/sudoku_level6_3.txt", // edition 225, puzzle 77
+		"puzzles/sudoku_level6_4.txt", // edition 225, puzzle 79
+		"puzzles/sudoku_level6_5.txt", // edition 225, puzzle 83
+		"puzzles/sudoku_level8_1.txt", // edition 134, puzzle 26
+		"puzzles/sudoku_level8_2.txt", // edition 134, puzzle 28
+		"puzzles/sudoku_level8_3.txt", // edition 134, puzzle 30
+		"puzzles/sudoku_level9_1.txt", // edition 134, puzzle 17 (contradiction / forcing chain)
+		"puzzles/sudoku_level9_2.txt", // edition 134, puzzle 25 (contradiction)
+		"puzzles/sudoku_level9_3.txt", // edition 134, puzzle 27 (XY wing + XYZ wing)
+		"puzzles/sudoku_level9_4.txt", // edition 134, puzzle 29 (contradiction)
+		"puzzles/sudoku_level9_5.txt", // edition 134, puzzle 31 (X wing)
+		"puzzles/sudoku_level9_6.txt", // edition 134, puzzle 33 (contradiction)
+		"puzzles/sudoku_level9_7.txt", // edition 104, puzzle 9
+		"puzzles/sudoku_level9_8.txt", // edition 104, puzzle 11
+		"puzzles/sudoku_level9_9.txt", // edition 104, puzzle 13 (contradiction)
+		"puzzles/sudoku_level9_10.txt", // edition 104, puzzle 15
+		"puzzles/sudoku_level9_11.txt", // edition 104, puzzle 17
+		"puzzles/sudoku_level9_12.txt", // edition 104, puzzle 19 (contradiction)		
 	}
-
 
 	for _, puzzle := range puzzles {
 		sudoku := Sudoku{}
@@ -50,7 +97,7 @@ func main() {
 	}
 }
 
-func (sudoku Sudoku) solve() bool {
+func (sudoku *Sudoku) solve() bool {
 	i := 0
 	for {
 		i++
@@ -157,6 +204,29 @@ func (sudoku *Sudoku) read(fileLocation string) {
     if err := scanner.Err(); err != nil {
         log.Fatal(err)
     }
+}
+
+func (sudoku *Sudoku) readFromArray(input [81]int) {
+	fmt.Printf("Read Sudoku from array: %v\n", input)
+	for row := 0; row < 9; row++ {
+		for column := 0; column < 9; column++ {
+			id := row * 9 + column
+			number := input[id]
+			options := []int{1,2,3,4,5,6,7,8,9}
+			if number != 0 {
+				options = []int{}
+			}
+			square := (row/3)*3 + column/3 // (x/3)*3 != x, e.g. (4/3)*3=3
+			sudoku[id] = Cell{
+				id: id,
+				row: row,
+				column: column,
+				square: square,
+				number: number,
+				options: options,	
+			}
+		}
+	}
 }
 
 func (sudoku Sudoku) deepCopy() Sudoku {
