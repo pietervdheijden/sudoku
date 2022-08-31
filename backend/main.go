@@ -17,6 +17,7 @@ type sudokuApiModel struct {
 
 func main() {
 	router := gin.Default()
+	// TODO: add /options or /getOptions (potentially to /hint?)
 	// TODO: add difficulty to solve
 	router.POST("/solve", solveSudoku)
 	router.POST("/hint", hintSudoku)
@@ -44,7 +45,9 @@ func solveSudoku(c *gin.Context) {
 
 func hintSudoku(c *gin.Context) {
 	// TODO: implement hint
-
+	// - NextCell (the cell which could be solved next)
+	// - Technique (/tactic, to )
+	// - RelatedCells 
 }
 
 func (sudoku *Sudoku) toApiModel() sudokuApiModel {
