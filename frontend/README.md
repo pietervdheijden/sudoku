@@ -33,3 +33,11 @@ npm run build
 ```sh
 npm run lint
 ```
+
+
+## Notes
+
+Favicon: https://www.vectorstock.com/royalty-free-vector/symmetrical-sudoku-icon-vector-9412445
+
+Examples: https://vuejs.org/examples/#crud
+

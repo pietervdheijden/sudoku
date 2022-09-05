@@ -1,11 +1,12 @@
 <template>
   <div class="about">
     <h1>This is an about page</h1>
-    <p>Explain about the author, the game, etc.</p> 
+    <br/>
+    <h2>Explain about the author, the game, etc.</h2> 
   </div>
 </template>
 
-<style>
+<!-- <style>
 @media (min-width: 1024px) {
   .about {
     min-height: 100vh;
@@ -13,4 +14,4 @@
     align-items: center;
   }
 }
-</style>
+</style> -->
