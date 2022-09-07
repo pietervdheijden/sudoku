@@ -39,15 +39,15 @@ export default {
         }
         return;
       }
-      if (event.keyCode == 9) { // tab
-        if (cellId < 80) {
-          this.$refs.cell[cellId+1].focus();
-        }
-        return;
-      }
       if(event.shiftKey && event.keyCode == 9) { // shift tab
         if (cellId > 0) {
           this.$refs.cell[cellId-1].focus();
+        }
+        return;
+      }
+      if (event.keyCode == 9) { // tab
+        if (cellId < 80) {
+          this.$refs.cell[cellId+1].focus();
         }
         return;
       }
