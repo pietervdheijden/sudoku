@@ -12,6 +12,15 @@ export default {
     getCellId: function(cellId) {
       return `cell${cellId}`
     },
+    onkeydown: function(cellId, event) {
+      console.log(event, event.key, event.keyCode)
+
+      if (event.keyCode == 8) {
+        console.log('Set cell to null', cellId)
+        this.sudoku[cellId] = null
+        return
+      }
+    },
     onkeypress: function (cellId, event) {
       console.log(cellId, event)
 
@@ -25,16 +34,27 @@ export default {
 
       // TODO: support backspace and delete keys
       var key = event.key;
-      if (!["0", "1","2","3","4","5","6","7","8","9"].includes(key)) {
-        event.preventDefault();
-      } else {
-        this.sudoku[cellId] = parseInt(event.key)
-        if (cellId < 80) {
-          this.$refs.cell[cellId+1].focus()
-        }
+      // console.log(event, event.key, event.keyCode)
 
-        console.log("END!")
+      // if (event.keyCode == 8) {
+      //   this.sudoku[cellId] = null
+      //   return
+      // }
+      console.log(key)
+      if (!["1","2","3","4","5","6","7","8","9"].includes(key)) {
+        event.preventDefault();
+        console.log("PREVENT DEFAULT")
+        return
       }
+      
+
+      
+      this.sudoku[cellId] = parseInt(event.key)
+      if (cellId < 80) {
+        this.$refs.cell[cellId+1].focus()
+      }
+
+      console.log("END!")
     },
     async solve() {
       console.log("SOLVE!")
@@ -64,7 +84,6 @@ export default {
       <tr v-for="(v1, row) in 9" :key="row">
         <td v-for="(v2, column) in 9"
           :key="column"
-          :set="cellId = row * 9 + column"
           :class="{
             'cell': true,
             'cell-border-right': (column == 2 || column == 5),
@@ -72,7 +91,13 @@ export default {
             'cell-border-bottom': (row == 2 || row == 5),
             'cell-border-top': (row == 3 || row == 6),
           }">
-          <input type="text" class="button" @keypress.prevent="(event) => onkeypress(row * 9 + column, event)" v-model="sudoku[cellId]" ref="cell" />
+          <input
+            type="text"
+            class="button"
+            @keydown="(event) => onkeydown(row * 9 + column, event)"
+            @keypress.prevent="(event) => onkeypress(row * 9 + column, event)"
+            v-model="sudoku[row * 9 + column]"
+            ref="cell" />
         </td>
       </tr>
     </table>
