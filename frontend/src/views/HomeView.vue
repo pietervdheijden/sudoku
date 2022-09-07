@@ -5,10 +5,13 @@ export default {
   data() {
     return {
       // sudoku: new Array(81).fill(null)
-      sudoku: new Array(81).fill(null)
+      sudoku: new Array(81)
     }
   },
   methods: {
+    getCellId: function(cellId) {
+      return `cell${cellId}`
+    },
     onkeypress: function (cellId, event) {
       console.log(cellId, event)
 
@@ -21,13 +24,16 @@ export default {
       // }
 
       // TODO: support backspace and delete keys
-      // TODO: auto tab when number is filled
-
       var key = event.key;
       if (!["0", "1","2","3","4","5","6","7","8","9"].includes(key)) {
         event.preventDefault();
       } else {
         this.sudoku[cellId] = parseInt(event.key)
+        if (cellId < 80) {
+          this.$refs.cell[cellId+1].focus()
+        }
+
+        console.log("END!")
       }
     },
     async solve() {
@@ -56,10 +62,9 @@ export default {
   <main style="margin-left: auto margin-right: auto">
     <table class="table">
       <tr v-for="(v1, row) in 9" :key="row">
-        <!-- <td v-for="(v2, column) in 9" :key="column" class="cell">
-          <span>{{ row * 9 + column }}</span>
-        </td> -->
-        <td v-for="(v2, column) in 9" :key="column" :set="cellId = row * 9 + column"
+        <td v-for="(v2, column) in 9"
+          :key="column"
+          :set="cellId = row * 9 + column"
           :class="{
             'cell': true,
             'cell-border-right': (column == 2 || column == 5),
@@ -67,12 +72,8 @@ export default {
             'cell-border-bottom': (row == 2 || row == 5),
             'cell-border-top': (row == 3 || row == 6),
           }">
-          <input type="text" class="button" @keypress.prevent="(event) => onkeypress(row * 9 + column, event)" v-model="sudoku[cellId]"/>
+          <input type="text" class="button" @keypress.prevent="(event) => onkeypress(row * 9 + column, event)" v-model="sudoku[cellId]" ref="cell" />
         </td>
-
-        <!-- <td v-for="column in 9" :key="column" class="cell">
-          <input type="text" class="button" @keypress.prevent="(event) => onkeypress(row * 9 + column, event)" v-model="sudoku[row * 9 + column]"/>
-        </td> -->
       </tr>
     </table>
 
