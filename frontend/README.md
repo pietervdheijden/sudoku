@@ -41,3 +41,4 @@ Favicon: https://www.vectorstock.com/royalty-free-vector/symmetrical-sudoku-icon
 
 Examples: https://vuejs.org/examples/#crud
 
+Consider creating a custom logo (e.g. with Fiverr).
