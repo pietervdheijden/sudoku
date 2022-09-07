@@ -1,60 +1,66 @@
 <script>
-import TheWelcome from '../components/TheWelcome.vue'
-
 export default {
   data() {
     return {
-      // sudoku: new Array(81).fill(null)
       sudoku: new Array(81)
     }
   },
   methods: {
-    getCellId: function(cellId) {
-      return `cell${cellId}`
-    },
     onkeydown: function(cellId, event) {
-      console.log(event, event.key, event.keyCode)
-
-      if (event.keyCode == 8) {
+      console.log("onkeydown", event, event.key, event.keyCode, cellId)
+      
+      var key = event.key
+      if (event.keyCode == 8) { // backspace
         console.log('Set cell to null', cellId)
         this.sudoku[cellId] = null
         return
       }
-    },
-    onkeypress: function (cellId, event) {
-      console.log(cellId, event)
-
-      // Source: https://www.geeksforgeeks.org/how-to-force-input-field-to-enter-numbers-only-using-javascript/
-      // Only ASCII character in that range allowed
-      // var ASCIICode = (event.which) ? event.which : event.keyCode
-      // if (ASCIICode > 31 && (ASCIICode < 48 || ASCIICode > 57)) {
-      //   event.preventDefault();
-      //   return false
-      // }
-
-      // TODO: support backspace and delete keys
-      var key = event.key;
-      // console.log(event, event.key, event.keyCode)
-
-      // if (event.keyCode == 8) {
-      //   this.sudoku[cellId] = null
-      //   return
-      // }
-      console.log(key)
-      if (!["1","2","3","4","5","6","7","8","9"].includes(key)) {
-        event.preventDefault();
-        console.log("PREVENT DEFAULT")
-        return
+      if (event.keyCode == 37) { // arrow left
+        if (cellId > 0) {
+          this.$refs.cell[cellId-1].focus();
+        }
+        return;
       }
-      
+      if (event.keyCode == 39) { // arrow right
+        if (cellId < 80) {
+          this.$refs.cell[cellId+1].focus();
+        }
+        return;
+      }
+      if (event.keyCode == 38) { // arrow up
+        if (cellId > 8) {
+          this.$refs.cell[cellId-9].focus();
+        }
+        return;
+      }
+      if (event.keyCode == 40) { // arrow down
+        if (cellId < 72) {
+          this.$refs.cell[cellId+9].focus();
+        }
+        return;
+      }
+      if (event.keyCode == 9) { // tab
+        if (cellId < 80) {
+          this.$refs.cell[cellId+1].focus();
+        }
+        return;
+      }
+      if(event.shiftKey && event.keyCode == 9) { // shift tab
+        if (cellId > 0) {
+          this.$refs.cell[cellId-1].focus();
+        }
+        return;
+      }
+      if (!["1","2","3","4","5","6","7","8","9"].includes(key)) { // invalid char
+        event.preventDefault();
+        return;
+      }
 
-      
+      // Valid input
       this.sudoku[cellId] = parseInt(event.key)
       if (cellId < 80) {
         this.$refs.cell[cellId+1].focus()
       }
-
-      console.log("END!")
     },
     async solve() {
       console.log("SOLVE!")
@@ -65,7 +71,7 @@ export default {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify({'sudoku': this.sudoku.map(i => i ?? 0)}),
-          mode: 'no-cors' // TODO: remove
+          mode: 'no-cors' // TODO: remove / replace (?)
         });
         var answer = (await res.json())
       } catch (error) {
@@ -94,8 +100,7 @@ export default {
           <input
             type="text"
             class="button"
-            @keydown="(event) => onkeydown(row * 9 + column, event)"
-            @keypress.prevent="(event) => onkeypress(row * 9 + column, event)"
+            @keydown.prevent="(event) => onkeydown(row * 9 + column, event)"
             v-model="sudoku[row * 9 + column]"
             ref="cell" />
         </td>
