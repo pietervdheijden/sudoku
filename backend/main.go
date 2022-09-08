@@ -19,9 +19,28 @@ func main() {
 	router := gin.Default()
 	// TODO: add /options or /getOptions (potentially to /hint?)
 	// TODO: add difficulty to solve
+	router.Use(CORSMiddleware())
 	router.POST("/solve", solveSudoku)
 	router.POST("/hint", hintSudoku)
 	router.Run(":8080")
+}
+
+// TODO: replace CORS middleware with BFF, or host backend and frontend on same URL.
+// Source: https://stackoverflow.com/a/29439630/3737152
+func CORSMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+        c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+        c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+        c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+
+        if c.Request.Method == "OPTIONS" {
+            c.AbortWithStatus(204)
+            return
+        }
+
+        c.Next()
+    }
 }
 
 func solveSudoku(c *gin.Context) {

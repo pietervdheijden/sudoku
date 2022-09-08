@@ -2,7 +2,8 @@
 export default {
   data() {
     return {
-      sudoku: new Array(81)
+      // sudoku: new Array(81)
+      sudoku: "000920000040851000256003091100085409098730162000200530007060900900002680080090054".split('').map(c => parseInt(c))
     }
   },
   methods: {
@@ -65,15 +66,18 @@ export default {
     async solve() {
       console.log("SOLVE!")
       console.log([...this.sudoku])
+
+      // this.sudoku = "000920000040851000256003091100085409098730162000200530007060900900002680080090054".split('').map(c => parseInt(c))
+      // console.log([...this.sudoku])
       
       try {
         const res = await fetch('http://localhost:8080/solve', { // TODO: get URL from env var
           method: "POST",
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify({'sudoku': this.sudoku.map(i => i ?? 0)}),
-          mode: 'no-cors' // TODO: remove / replace (?)
         });
         var answer = (await res.json())
+        this.sudoku = answer.sudoku;
       } catch (error) {
         var answer = 'Error! Could not reach the API. ' + error
       }
