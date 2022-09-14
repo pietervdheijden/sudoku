@@ -20,8 +20,8 @@ func main() {
 	// TODO: add /options or /getOptions (potentially to /hint?)
 	// TODO: add difficulty to solve
 	router.Use(CORSMiddleware())
-	router.POST("/solve", solveSudoku)
-	router.POST("/hint", hintSudoku)
+	router.POST("/api/solve", solveSudoku)
+	router.POST("/api/hint", hintSudoku)
 	router.Run(":8080")
 }
 

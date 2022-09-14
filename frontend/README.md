@@ -1,44 +1,18 @@
-# sudoku-frontend
+# Sudoku Frontend
 
 This template should help get you started developing with Vue 3 in Vite.
 
-## Recommended IDE Setup
-
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
-
-
 ## Notes
 
-Favicon: https://www.vectorstock.com/royalty-free-vector/symmetrical-sudoku-icon-vector-9412445
+- Favicon source: https://www.vectorstock.com/royalty-free-vector/symmetrical-sudoku-icon-vector-9412445
+- Consider creating a custom logo (e.g. with Fiverr).
 
-Examples: https://vuejs.org/examples/#crud
+## Dotenv configuration
 
-Consider creating a custom logo (e.g. with Fiverr).
+The environments (see root README.md) are configured with dotenv files:
+
+- Local Development: `.env`
+- Docker Compose: `.env.dockercompose`
+- Production: `.env.production`
+
+For more details about Modes and Environment variables in Vue.js, see: https://cli.vuejs.org/guide/mode-and-env.html.

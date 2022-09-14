@@ -1,4 +1,4 @@
-# Backend
+# Sudoku Backend
 Backend is written in Go.
 
 Notes:

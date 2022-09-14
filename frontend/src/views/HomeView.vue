@@ -2,6 +2,7 @@
 export default {
   data() {
     return {
+      backendUrl: import.meta.env.VITE_BACKEND_URL,
       // sudoku: new Array(81)
       sudoku: "000920000040851000256003091100085409098730162000200530007060900900002680080090054".split('').map(c => parseInt(c))
     }
@@ -67,11 +68,8 @@ export default {
       console.log("SOLVE!")
       console.log([...this.sudoku])
 
-      // this.sudoku = "000920000040851000256003091100085409098730162000200530007060900900002680080090054".split('').map(c => parseInt(c))
-      // console.log([...this.sudoku])
-      
       try {
-        const res = await fetch('http://localhost:8080/solve', { // TODO: get URL from env var
+        const res = await fetch(`${this.backendUrl}/api/solve`, {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify({'sudoku': this.sudoku.map(i => i ?? 0)}),

@@ -3,8 +3,17 @@
 ## Quick start
 
 ```bash
-docker-compose up
+$ docker-compose up
 ```
+
+## Environments
+
+|Environment|Frontend URL|Backend URL|
+|---|---|---|
+|Local Development|http://127.0.0.1:5173|http://127.0.0.1:8080|
+|Docker Compose|http://127.0.0.1:5000|http://127.0.0.1:5001|
+|Production|https://productionURL.com|https://productionURL.com/api|
+
 
 ## Sudoku info
 Links:

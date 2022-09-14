@@ -2,11 +2,13 @@
 
 # build stage
 FROM node:lts-alpine as build-stage
+ARG VITE_MODE=production
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-RUN npm run build
+# RUN npm run lint
+RUN npm run build -- --mode $VITE_MODE
 
 # production stage
 FROM nginx:stable-alpine as production-stage
@@ -16,10 +18,11 @@ EXPOSE 8080
 
 # Create non-root user
 # Source: https://www.rockyourcode.com/run-docker-nginx-as-non-root-user/
-RUN chown -R nginx:nginx /usr/share/nginx/html && chmod -R 755 /usr/share/nginx/html && \
-        chown -R nginx:nginx /var/cache/nginx && \
-        chown -R nginx:nginx /var/log/nginx && \
-        chown -R nginx:nginx /etc/nginx/conf.d
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html && \
+    chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    chown -R nginx:nginx /etc/nginx/conf.d
 RUN touch /var/run/nginx.pid && \
         chown -R nginx:nginx /var/run/nginx.pid
 USER nginx
