@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-# RUN npm run lint
+RUN npm run lint
 RUN npm run build -- --mode $VITE_MODE
 
 # production stage

@@ -68,19 +68,19 @@ export default {
       console.log("SOLVE!")
       console.log([...this.sudoku])
 
+      
       try {
         const res = await fetch(`${this.backendUrl}/api/solve`, {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify({'sudoku': this.sudoku.map(i => i ?? 0)}),
         });
-        var answer = (await res.json())
-        this.sudoku = answer.sudoku;
+        var response = (await res.json())
+        console.log(response)
+        this.sudoku = response.sudoku;
       } catch (error) {
-        var answer = 'Error! Could not reach the API. ' + error
+        console.log('Error! Could not reach the API. ' + error)
       }
-
-      console.log(answer)
     }
   }
 }
