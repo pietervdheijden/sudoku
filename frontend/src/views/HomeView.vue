@@ -3,6 +3,8 @@ export default {
   data() {
     return {
       backendUrl: import.meta.env.VITE_BACKEND_URL,
+      infoMessage: "",
+      errorMessage: "",
       // sudoku: new Array(81)
       sudoku: "000920000040851000256003091100085409098730162000200530007060900900002680080090054".split('').map(c => parseInt(c))
     }
@@ -65,32 +67,49 @@ export default {
       }
     },
     async solve() {
-      console.log("SOLVE!")
-      console.log([...this.sudoku])
+      console.log(`Solve sudoku: ${this.sudoku.join('')}`)
+      this.infoMessage = "";
+      this.errorMessage = "";
 
-      
       try {
-        const res = await fetch(`${this.backendUrl}/api/solve`, {
+        const response = await fetch(`${this.backendUrl}/api/solve`, {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify({'sudoku': this.sudoku.map(i => i ?? 0)}),
         });
-        var response = (await res.json())
-        console.log(response)
-        this.sudoku = response.sudoku;
+        const statusCode = response.status;
+        const json = (await response.json())
+        if (statusCode == 200) {
+          this.sudoku = json.sudoku;
+          this.infoMessage = "Sudoku is solved!"
+        } else {
+          this.errorMessage = json.message
+        }
       } catch (error) {
-        console.log('Error! Could not reach the API. ' + error)
+        this.errorMessage = `API returned error: ${error}` 
       }
+    },
+    async hint() {
+      console.log("Hint")
+      this.infoMessage = "Hint"
+    },
+    async checkSolution() {
+      console.log("Check solution")
+      this.infoMessage = "Check solution"
+    },
+    async showOptions() {
+      console.log("Show options")
+      this.infoMessage = "Show options"
     }
   }
 }
 </script>
 
 <template>
-  <main style="margin-left: auto margin-right: auto">
+  <main style="margin-left: auto margin-right: auto text-align: center">
     <table class="table">
-      <tr v-for="(v1, row) in 9" :key="row">
-        <td v-for="(v2, column) in 9"
+      <tr v-for="(_, row) in 9" :key="row">
+        <td v-for="(_, column) in 9"
           :key="column"
           :class="{
             'cell': true,
@@ -101,7 +120,7 @@ export default {
           }">
           <input
             type="text"
-            class="button"
+            class="cell-input"
             @keydown.prevent="(event) => onkeydown(row * 9 + column, event)"
             v-model="sudoku[row * 9 + column]"
             ref="cell" />
@@ -109,17 +128,13 @@ export default {
       </tr>
     </table>
 
-    <button @click="solve()">Solve</button>
-
-    <!-- <p><button>Solve</button></p>
-    <p></p>
-    <button>Solve next cell</button>
-    <p></p>
-    <button>Hint</button>
-    <p></p>
-    <button>Check</button>
-    <p></p>
-    <button>Show options / candidates</button> -->
+    <button @click="solve()" class="button">Solve</button>
+    <button @click="hint()" class="button">Hint</button>
+    <button @click="checkSolution()" class="button">Check solution</button>
+    <button @click="showOptions()" class="button">Show options</button>
+    
+    <span class="info-box">{{ infoMessage }}</span>
+    <span class="error-box">{{ errorMessage }}</span>
   </main>
 </template>
 
@@ -133,7 +148,7 @@ export default {
 .cell {
   padding: 0px;
 }
-.button {
+.cell-input {
   width: fit-content;
   display: inline-block;
   width: 40px;
@@ -152,7 +167,20 @@ export default {
 .cell-border-bottom {
   border-bottom: 1px solid;
 }
+
 .cell-border-top {
   border-top: 1px solid;
+}
+.info-box {
+  margin: auto;
+}
+.error-box {
+  color: red;
+}
+.button {
+  background-color: blueviolet;
+  margin: auto;
+  padding: 10px;
+  display: block;
 }
 </style>
