@@ -22,6 +22,8 @@ func main() {
 	router.Use(CORSMiddleware())
 	router.POST("/api/solve", solveSudoku)
 	router.POST("/api/hint", hintSudoku)
+	router.POST("/api/check", checkSolution)
+	router.POST("/api/options", getOptions)
 	router.Run(":8080")
 }
 
@@ -67,6 +69,14 @@ func hintSudoku(c *gin.Context) {
 	// - NextCell (the cell which could be solved next)
 	// - Technique (/tactic, to )
 	// - RelatedCells 
+}
+
+func checkSolution(c *gin.Context) {
+
+}
+
+func getOptions(c *gin.Context) {
+	
 }
 
 func (sudoku *Sudoku) toApiModel() sudokuApiModel {

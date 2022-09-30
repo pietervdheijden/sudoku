@@ -1,4 +1,4 @@
-module example.com/mod
+module github.com/pietervdheijden/sudoku
 
 go 1.19
 

@@ -5,8 +5,16 @@ export default {
       backendUrl: import.meta.env.VITE_BACKEND_URL,
       infoMessage: "",
       errorMessage: "",
-      // sudoku: new Array(81)
-      sudoku: "000920000040851000256003091100085409098730162000200530007060900900002680080090054".split('').map(c => parseInt(c))
+      // sudoku: new Array(81),
+      sudoku: "000920000040851000256003091100085409098730162000200530007060900900002680080090054".split('').map(c => {
+        var value = parseInt(c)
+        if (value == 0) {
+          return null
+        } else {
+          return value
+        }
+      }),
+      options: null
     }
   },
   methods: {

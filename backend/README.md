@@ -2,7 +2,8 @@
 Backend is written in Go.
 
 Notes:
-- HTTP framework for Go: gin: gin-gonic/gin (https://github.com/gin-gonic/gin). Tutorial: https://go.dev/doc/tutorial/web-service-gin.
+- HTTP framework for Go: gin: gin-gonic/gin (https://github.com/gin-gonic/gin).
+- Tutorial: https://go.dev/doc/tutorial/web-service-gin.
 
 Golang links:
 - https://go.dev/tour/concurrency/11
