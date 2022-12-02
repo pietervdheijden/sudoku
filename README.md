@@ -8,10 +8,13 @@ The goal of this project was two-fold:
 Currently, the Sudoku app can solve any Sudoku using various techniques. However, it does not yet support the "hint" feature mentioned before.
 
 ## Quick start
+Run Docker Compose:
 
 ```bash
 $ docker-compose up
 ```
+
+The Sudoku app is now available on http://127.0.0.1:5000.
 
 ## Environments
 
