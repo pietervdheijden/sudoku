@@ -1,5 +1,5 @@
 # Sudoku app
-This repository contains a Sudoku app, which can be used to solve any Sudoku. The app consists of a Go backend (see: `/src/backend`) and a Vue.js frontend (see: `src/frontend`).
+This repository contains a Sudoku app, which can be used to solve any Sudoku. The app consists of a Go backend (see: `./backend`) and a Vue.js frontend (see: `./frontend`).
 
 The goal of this project was two-fold:
 - Improving my Sudoku solving skills with a "hint" feature. So, if I'm stuck on a Sudoku, I could fill in the Sudoku in the app and get the next hint (instead of directly showing the end result like most other Sudoku apps out there).
