@@ -2,19 +2,21 @@
 The backend is written in Go and inspired by [eddycjy/go-gin-example](https://github.com/eddycjy/go-gin-example).
 
 ## Quick start
-Run the API with Go CLI:
+Run the API with Golang CLI:
 
 ```bash
 $ go run main.go
 ```
 
-Run the API with Docker:
+Or, run the API with Docker:
 
 ```bash
 $ docker build . -t sudoku-api && docker run -p 8080:8080 sudoku-api
 ```
 
-Test the API:
+The API is now available on http://127.0.0.1:8080.
+
+To test the API, run:
 
 ```bash
 $ curl 127.0.0.1:8080/api/v1/solve \
