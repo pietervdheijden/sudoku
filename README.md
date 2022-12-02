@@ -7,6 +7,8 @@ The goal of this project was two-fold:
 
 Currently, the Sudoku app can solve any Sudoku using various techniques. However, it does not yet support the "hint" feature mentioned before.
 
+![Sudoku app screenshot](sudoku-app-screenshot.png)
+
 ## Quick start
 Run Docker Compose:
 
