@@ -8,7 +8,7 @@ Run the app with npm:
 $ npm run dev
 ```
 
-Run the app with Docker:
+Or, run the app with Docker:
 
 ```bash
 $ docker build . -t sudoku-app && docker run -p 5173:8080 sudoku-app
