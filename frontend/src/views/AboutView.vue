@@ -2,7 +2,7 @@
   <div class="about">
     <h1>This is an about page</h1>
     <br/>
-    <h2>Explain about the author, the game, etc.</h2> 
+    <h2>TODO: explain about the author, the game, etc.</h2> 
   </div>
 </template>
 

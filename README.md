@@ -1,4 +1,11 @@
-# Sudoku
+# Sudoku app
+This repository contains a Sudoku app, which can be used to solve any Sudoku. The app consists of a Go backend (see: `/src/backend`) and a Vue.js frontend (see: `src/frontend`).
+
+The goal of this project was two-fold:
+- Improving my Sudoku solving skills with a "hint" feature. So, if I'm stuck on a Sudoku, I could fill in the Sudoku in the app and get the next hint (instead of directly showing the end result like most other Sudoku apps out there).
+- Getting some experience with building (modular) Go applications, especially because of my interest in the cloud native / Kubernetes ecosystem.
+
+Currently, the Sudoku app can solve any Sudoku using various techniques. However, it does not yet support the "hint" feature mentioned before.
 
 ## Quick start
 
@@ -14,26 +21,5 @@ $ docker-compose up
 |Docker Compose|http://127.0.0.1:5000|http://127.0.0.1:5001|
 |Production|https://productionURL.com|https://productionURL.com/api|
 
-
-## Sudoku info
-Links:
-- Sudoku source: https://sudoku.com/easy/
-
-Sudoku tactics:
-- XYZ wing: https://www.sudokuwiki.org/XYZ_Wing
-- A Sudoku should have a unique solution.
-- Single cell = naked singles
-
-Helper: https://www.sudoku-solutions.com/
-
-Technique per rating / difficulty:
-- Simple: Naked Single, Hidden Single
-- Easy: Naked Pair, Hidden Pair, Pointing Pairs
-- Medium: Naked Triple, Naked Quad, Pointing Triples, Hidden Triple, Hidden Quad
-- Hard: XWing, Swordfish, Jellyfish, XYWing, XYZWing
-
-Advanced sudoku strategies:
-- https://www.sudokuonline.io/tips/advanced-sudoku-strategies
-- https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php
-- Swordfish: https://www.sudokuwiki.org/Sword_Fish_Strategy
-- Jellyfish: https://www.sudokuwiki.org/Jelly_Fish_Strategy 
+## Credits
+The application is inspired by https://www.sudoku-solutions.com/.

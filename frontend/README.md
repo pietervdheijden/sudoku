@@ -1,13 +1,29 @@
 # Sudoku Frontend
+The frontend is written in Vue.js.
 
-This template should help get you started developing with Vue 3 in Vite.
+Favicon source: https://www.vectorstock.com/royalty-free-vector/symmetrical-sudoku-icon-vector-9412445
 
-## Notes
+## Quick start
+Run the app with npm:
 
-- Favicon source: https://www.vectorstock.com/royalty-free-vector/symmetrical-sudoku-icon-vector-9412445
-- Consider creating a custom logo (e.g. with Fiverr).
+```bash
+$ npm run dev
+```
 
-## Dotenv configuration
+Run the app with Docker:
+
+```bash
+$ docker build . -t sudoku-app && docker run -p 5000:8080 sudoku-app
+```
+
+Test the API:
+
+```bash
+$ ./apitests.sh
+```
+
+
+## dotenv configuration
 
 The environments (see root README.md) are configured with dotenv files:
 

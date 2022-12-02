@@ -5,15 +5,16 @@ export default {
       backendUrl: import.meta.env.VITE_BACKEND_URL,
       infoMessage: "",
       errorMessage: "",
-      // sudoku: new Array(81),
-      sudoku: "000920000040851000256003091100085409098730162000200530007060900900002680080090054".split('').map(c => {
-        var value = parseInt(c)
-        if (value == 0) {
-          return null
-        } else {
-          return value
-        }
-      }),
+      sudoku: new Array(81),
+      // Test code:
+      // sudoku: "000920000040851000256003091100085409098730162000200530007060900900002680080090054".split('').map(c => {
+      //   var value = parseInt(c)
+      //   if (value == 0) {
+      //     return null
+      //   } else {
+      //     return value
+      //   }
+      // }),
       options: null
     }
   },
@@ -80,7 +81,7 @@ export default {
       this.errorMessage = "";
 
       try {
-        const response = await fetch(`${this.backendUrl}/api/solve`, {
+        const response = await fetch(`${this.backendUrl}/api/v1/solve`, {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify({'sudoku': this.sudoku.map(i => i ?? 0)}),
@@ -137,9 +138,12 @@ export default {
     </table>
 
     <button @click="solve()" class="button">Solve</button>
+    <!--
+      TODO: implement buttons
     <button @click="hint()" class="button">Hint</button>
     <button @click="checkSolution()" class="button">Check solution</button>
     <button @click="showOptions()" class="button">Show options</button>
+    -->
     
     <span class="info-box">{{ infoMessage }}</span>
     <span class="error-box">{{ errorMessage }}</span>
